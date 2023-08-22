@@ -2,12 +2,10 @@ import { fileURLToPath, URL } from "url";
 
 import { defineConfig } from "vite";
 import Vue from "@vitejs/plugin-vue";
-import VueJsx from "@vitejs/plugin-vue-jsx";
 import Icons from "unplugin-icons/vite";
 
-const pluginEntryName = "PluginStarter";
+const pluginEntryName = "app-store";
 
-// https://vitejs.dev/config/
 export default ({ mode }: { mode: string }) => {
   const isProduction = mode === "production";
   const outDir = isProduction
@@ -15,7 +13,7 @@ export default ({ mode }: { mode: string }) => {
     : "../build/resources/main/console";
 
   return defineConfig({
-    plugins: [Vue(), VueJsx(), Icons({ compiler: "vue3" })],
+    plugins: [Vue(), Icons({ compiler: "vue3" })],
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
