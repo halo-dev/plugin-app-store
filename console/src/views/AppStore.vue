@@ -9,7 +9,6 @@ import {
   IconGrid,
   IconList,
   IconRefreshLine,
-  VAvatar,
   VButton,
   VCard,
   VEmpty,
@@ -142,23 +141,12 @@ const handleSelectNext = async () => {
     selectedApp.value = items[0];
   }
 };
-
-const auth = ref(false);
 </script>
 
 <template>
   <VPageHeader title="应用市场">
     <template #icon>
       <RiApps2Line class="as-mr-2 as-self-center" />
-    </template>
-    <template #actions>
-      <div class="as-flex as-items-center">
-        <VButton v-if="!auth" size="sm" @click="auth = true">授权</VButton>
-        <div v-else class="as-inline-flex as-items-center as-gap-2">
-          <VAvatar src="https://ryanc.cc/avatar" circle size="xs"></VAvatar>
-          <span class="as-text-sm as-font-semibold as-text-gray-900">Ryan Wang</span>
-        </div>
-      </div>
     </template>
   </VPageHeader>
 
