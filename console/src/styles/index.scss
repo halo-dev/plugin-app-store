@@ -1,0 +1,17 @@
+#app-releases .markdown-body,
+#app-readme-target.markdown-body {
+  ol {
+    list-style: decimal !important;
+  }
+  ul {
+    list-style: disc !important;
+  }
+  img {
+    display: unset !important;
+    vertical-align: unset !important;
+  }
+
+  pre code {
+    padding: 0 !important;
+  }
+}

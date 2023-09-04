@@ -1,14 +1,14 @@
 apiVersion: plugin.halo.run/v1alpha1
 kind: Plugin
 metadata:
-  name: app-store
+  name: app-store-integration
 spec:
   enabled: true
-  requires: ">=2.10.0"
+  requires: ">=2.9.0"
   author:
     name: Halo OSS Team
     website: https://github.com/halo-dev
-  logo: https://halo.run/logo
+  logo: logo.svg
   homepage: https://github.com/halo-dev/plugin-app-store
   displayName: "应用市场"
   description: "集成 Halo 官方应用市场"
