@@ -5,13 +5,14 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, type Ref } from "vue";
 import semver from "semver";
 import { useHaloVersion } from "./use-halo-version";
+import { STORE_APP_ID } from "@/constant";
 
 export function useThemeVersion(theme: Ref<Theme | undefined>) {
   const { haloVersion } = useHaloVersion();
 
   // TODO: 可能需要专门的最新版本应用列表接口
   const { data: storeThemes } = useQuery<ListResponse<ApplicationSearchResult>>({
-    queryKey: ["store-apps"],
+    queryKey: ["theme-apps"],
     queryFn: async () => {
       const { data } = await storeApiClient.get<ListResponse<ApplicationSearchResult>>(
         `/apis/api.store.halo.run/v1alpha1/applications`,
@@ -23,10 +24,13 @@ export function useThemeVersion(theme: Ref<Theme | undefined>) {
       );
       return data;
     },
+    staleTime: 1000,
   });
 
   const matchedApp = computed(() => {
-    return storeThemes.value?.items.find((app) => app.application.spec.displayName === theme.value?.spec.displayName);
+    return storeThemes.value?.items.find(
+      (app) => app.application.metadata.name === theme.value?.metadata.annotations?.[STORE_APP_ID]
+    );
   });
 
   const hasUpdate = computed(() => {

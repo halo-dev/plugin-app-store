@@ -1,4 +1,4 @@
-import { AppType } from "@/constant";
+import { AppType, STORE_APP_ID } from "@/constant";
 import type { ApplicationSearchResult } from "@/types";
 import type { Plugin, PluginList, Theme, ThemeList } from "@halo-dev/api-client";
 import { useQuery } from "@tanstack/vue-query";
@@ -24,7 +24,7 @@ export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
   });
 
   const { data: installedThemes } = useQuery<Theme[]>({
-    queryKey: ["themes"],
+    queryKey: ["installed-themes"],
     queryFn: async () => {
       const { data } = await axios.get<ThemeList>("/apis/api.console.halo.run/v1alpha1/themes?uninstalled=false");
       return data.items;
@@ -35,8 +35,7 @@ export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
   const matchedPlugin = computed(() => {
     if (appType.value === AppType.PLUGIN) {
       return installedPlugins.value?.find(
-        // TODO: 后续应用市场服务需要添加 metadata.name 字段，当前使用 displayName 代替
-        (plugin) => plugin.spec.displayName === app.value?.application.spec.displayName
+        (plugin) => plugin.metadata.annotations?.[STORE_APP_ID] === app.value?.application.metadata.name
       );
     }
     return undefined;
@@ -44,8 +43,9 @@ export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
 
   const matchedTheme = computed(() => {
     if (appType.value === AppType.THEME) {
-      // TODO: 后续应用市场服务需要添加 metadata.name 字段，当前使用 displayName 代替
-      return installedThemes.value?.find((theme) => theme.spec.displayName === app.value?.application.spec.displayName);
+      return installedThemes.value?.find(
+        (theme) => theme.metadata.annotations?.[STORE_APP_ID] === app.value?.application.metadata.name
+      );
     }
     return undefined;
   });
