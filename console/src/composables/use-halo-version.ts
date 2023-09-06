@@ -10,6 +10,7 @@ export function useHaloVersion() {
       });
       return data?.build?.version;
     },
+    staleTime: 2000,
   });
   return { haloVersion };
 }
