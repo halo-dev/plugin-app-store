@@ -130,7 +130,7 @@ const { action } = useAppControl(app);
                   <DetailReadme :app="appDetail" />
                 </VTabItem>
                 <VTabItem id="releases" label="版本">
-                  <DetailReleases :app="appDetail" />
+                  <DetailReleases :app="app" />
                 </VTabItem>
                 <VTabItem id="comment" label="讨论"> </VTabItem>
               </VTabs>
