@@ -1,16 +1,18 @@
 import type { ApplicationDetail, ApplicationSearchResult } from "@/types";
-import { computed, type Ref } from "vue";
+import { type Ref } from "vue";
 import { useAppCompare } from "./use-app-compare";
-import { Toast } from "@halo-dev/components";
+import { Dialog, Toast } from "@halo-dev/components";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import type { Plugin, Theme } from "@halo-dev/api-client";
 import storeApiClient from "@/utils/store-api-client";
 import { apiClient } from "@/utils/api-client";
-import { STORE_APP_ID } from "@/constant";
+import { PLUGIN_ALREADY_EXISTS_TYPE, STORE_APP_ID, THEME_ALREADY_EXISTS_TYPE } from "@/constant";
+import type { AxiosError } from "axios";
+import type { PluginInstallationErrorResponse, ThemeInstallationErrorResponse } from "@/types/core";
 
-export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
+export function useAppDownload(app: Ref<ApplicationSearchResult | undefined>) {
   const queryClient = useQueryClient();
-  const { appType, hasInstalled, isSatisfies, matchedPlugin, matchedTheme } = useAppCompare(app);
+  const { appType, matchedPlugin, matchedTheme } = useAppCompare(app);
   const { getDownloadUrl } = useAppRelease(app);
 
   const { mutate: handleInstall, isLoading: installing } = useMutation({
@@ -25,12 +27,7 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
         const { data: plugin } = await apiClient.plugin.installPluginFromUri({
           installFromUriRequest: { uri: downloadUrl },
         });
-        return await handleUpdatePluginAnnotations({
-          plugin,
-          additionalAnnotations: {
-            [STORE_APP_ID]: app.value?.application.metadata.name || "",
-          },
-        });
+        return await handleBindingPluginAppId({ plugin });
       }
 
       if (appType.value === "THEME") {
@@ -38,12 +35,7 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
           installFromUriRequest: { uri: downloadUrl },
         });
 
-        return await handleUpdateThemeAnnotations({
-          theme,
-          additionalAnnotations: {
-            [STORE_APP_ID]: app.value?.application.metadata.name || "",
-          },
-        });
+        return await handleBindingThemeAppId({ theme });
       }
 
       Toast.error("未知的应用类型");
@@ -52,23 +44,81 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
       Toast.success("安装成功");
       handleClearQueryCache();
     },
+    onError(error: AxiosError<PluginInstallationErrorResponse | ThemeInstallationErrorResponse>) {
+      if (![PLUGIN_ALREADY_EXISTS_TYPE, THEME_ALREADY_EXISTS_TYPE].includes(error.response?.data?.type as string)) {
+        return;
+      }
+      Dialog.warning({
+        title: `当前${appType.value === "PLUGIN" ? "插件" : "主题"}已经安装，是否重新安装？`,
+        description:
+          "请确认当前安装的应用是否和已存在的应用一致，重新安装之后会记录应用的安装来源，后续可以通过应用市场进行升级。",
+        onConfirm: async () => {
+          if (!error.response?.data) {
+            return;
+          }
+
+          const downloadUrl = await getDownloadUrl();
+
+          if (!downloadUrl) {
+            return;
+          }
+
+          if ("pluginName" in error.response.data) {
+            await handleForceUpgradePlugin(
+              error.response.data.pluginName,
+              downloadUrl,
+              app.value?.latestRelease?.spec.version
+            );
+            return;
+          }
+          if ("themeName" in error.response.data) {
+            await handleForceUpgradeTheme(
+              error.response.data.themeName,
+              downloadUrl,
+              app.value?.latestRelease?.spec.version
+            );
+            return;
+          }
+        },
+      });
+    },
   });
 
-  const { mutateAsync: handleUpdatePluginAnnotations } = useMutation({
+  async function handleForceUpgradeTheme(name: string, downloadUrl: string, expectVersion?: string) {
+    const { data: upgradedTheme } = await apiClient.theme.upgradeThemeFromUri({
+      name: name,
+      upgradeFromUriRequest: { uri: downloadUrl },
+    });
+
+    if (await checkThemeUpgradeStatus(upgradedTheme, expectVersion)) {
+      await handleBindingThemeAppId({ theme: upgradedTheme });
+      Toast.success("安装成功");
+      handleClearQueryCache();
+    }
+  }
+
+  async function handleForceUpgradePlugin(name: string, downloadUrl: string, expectVersion?: string) {
+    const { data: upgradedPlugin } = await apiClient.plugin.upgradePluginFromUri({
+      name: name,
+      upgradeFromUriRequest: { uri: downloadUrl },
+    });
+
+    if (await checkPluginUpgradeStatus(upgradedPlugin, expectVersion)) {
+      await handleBindingPluginAppId({ plugin: upgradedPlugin });
+      Toast.success("安装成功");
+      handleClearQueryCache();
+    }
+  }
+
+  const { mutateAsync: handleBindingPluginAppId } = useMutation({
     mutationKey: ["update-plugin-annotations"],
-    mutationFn: async ({
-      plugin,
-      additionalAnnotations,
-    }: {
-      plugin: Plugin;
-      additionalAnnotations: Record<string, string>;
-    }) => {
+    mutationFn: async ({ plugin }: { plugin: Plugin }) => {
       const { data: pluginToUpdate } = await apiClient.extension.plugin.getpluginHaloRunV1alpha1Plugin({
         name: plugin.metadata.name,
       });
       pluginToUpdate.metadata.annotations = {
         ...pluginToUpdate.metadata.annotations,
-        ...additionalAnnotations,
+        [STORE_APP_ID]: app.value?.application.metadata.name || "",
       };
       return await apiClient.extension.plugin.updatepluginHaloRunV1alpha1Plugin(
         {
@@ -81,21 +131,15 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
     retry: 3,
   });
 
-  const { mutateAsync: handleUpdateThemeAnnotations } = useMutation({
+  const { mutateAsync: handleBindingThemeAppId } = useMutation({
     mutationKey: ["update-theme-annotations"],
-    mutationFn: async ({
-      theme,
-      additionalAnnotations,
-    }: {
-      theme: Theme;
-      additionalAnnotations: Record<string, string>;
-    }) => {
+    mutationFn: async ({ theme }: { theme: Theme }) => {
       const { data: themeToUpdate } = await apiClient.extension.theme.getthemeHaloRunV1alpha1Theme({
         name: theme.metadata.name,
       });
       themeToUpdate.metadata.annotations = {
         ...themeToUpdate.metadata.annotations,
-        ...additionalAnnotations,
+        [STORE_APP_ID]: app.value?.application.metadata.name || "",
       };
       return await apiClient.extension.theme.updatethemeHaloRunV1alpha1Theme(
         {
@@ -108,7 +152,7 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
     retry: 3,
   });
 
-  const { isLoading: upgrading, mutate: handleUpgrade } = useMutation({
+  const { isLoading: upgrading, mutateAsync: handleUpgrade } = useMutation({
     mutationKey: ["upgrade-app"],
     mutationFn: async () => {
       const downloadUrl = await getDownloadUrl();
@@ -120,7 +164,7 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
       if (appType.value === "PLUGIN") {
         if (!matchedPlugin.value) {
           Toast.error("未找到匹配的插件");
-          return;
+          throw new Error("未找到匹配的插件");
         }
 
         const { data: upgradedPlugin } = await apiClient.plugin.upgradePluginFromUri({
@@ -137,7 +181,7 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
       if (appType.value === "THEME") {
         if (!matchedTheme.value) {
           Toast.error("未找到匹配的主题");
-          return;
+          throw new Error("未找到匹配的主题");
         }
 
         const { data: upgradedTheme } = await apiClient.theme.upgradeThemeFromUri({
@@ -227,52 +271,19 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
     }
   }
 
-  const actions = computed(() => {
-    return [
-      {
-        label: installing?.value ? "安装中" : "安装",
-        type: "default",
-        available:
-          !hasInstalled.value && isSatisfies.value && app.value?.application.spec.priceConfig?.mode !== "ONE_TIME",
-        onClick: handleInstall,
-        loading: installing?.value,
-        disabled: false,
-      },
-      {
-        label: `￥${(app.value?.application.spec.priceConfig?.oneTimePrice || 0) / 100}`,
-        type: "default",
-        // TODO: 需要判断是否已经购买
-        available: app.value?.application.spec.priceConfig?.mode === "ONE_TIME" && !hasInstalled.value,
-        onClick: () => {
-          window.open(`https://halo.run/store/apps/${app.value?.application.metadata.name}/buy`);
-        },
-        loading: false,
-        disabled: false,
-      },
-      {
-        label: "已安装",
-        type: "default",
-        available: hasInstalled.value,
-        onClick: undefined,
-        loading: false,
-        disabled: true,
-      },
-      {
-        label: "版本不兼容",
-        type: "default",
-        available: !isSatisfies.value && !hasInstalled.value,
-        onClick: undefined,
-        loading: false,
-        disabled: true,
-      },
-    ];
-  });
-
-  const action = computed(() => {
-    return actions.value.find((action) => action.available);
-  });
-
-  return { installing, upgrading, handleInstall, handleUpgrade, action };
+  return {
+    installing,
+    upgrading,
+    handleInstall,
+    handleUpgrade,
+    checkPluginUpgradeStatus,
+    checkThemeUpgradeStatus,
+    handleClearQueryCache,
+    handleBindingPluginAppId,
+    handleBindingThemeAppId,
+    handleForceUpgradePlugin,
+    handleForceUpgradeTheme,
+  };
 }
 
 function useAppRelease(app: Ref<ApplicationSearchResult | undefined>) {

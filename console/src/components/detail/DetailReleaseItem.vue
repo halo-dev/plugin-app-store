@@ -1,10 +1,18 @@
 <script lang="ts" setup>
-import { useAppControl } from "@/composables/use-app-control";
-import type { ApplicationSearchResult, ReleaseDetail } from "@/types";
+import { useAppCompare } from "@/composables/use-app-compare";
+import { useAppDownload } from "@/composables/use-app-download";
+import { useHaloVersion } from "@/composables/use-halo-version";
+import type { ApplicationReleaseAsset, ApplicationSearchResult, ReleaseDetail } from "@/types";
 import { relativeTimeTo } from "@/utils/date";
 import prettyBytes from "pretty-bytes";
-import { toRefs } from "vue";
+import { computed, toRefs } from "vue";
 import TablerCloudDownload from "~icons/tabler/cloud-download";
+import semver from "semver";
+import { useMutation } from "@tanstack/vue-query";
+import { apiClient } from "@/utils/api-client";
+import { Dialog, Toast } from "@halo-dev/components";
+import type { PluginInstallationErrorResponse, ThemeInstallationErrorResponse } from "@/types/core";
+import type { AxiosError } from "axios";
 
 const props = withDefaults(
   defineProps<{
@@ -18,7 +26,145 @@ const props = withDefaults(
 
 const { app } = toRefs(props);
 
-const { handleInstall, installing } = useAppControl(app);
+const { haloVersion } = useHaloVersion();
+const {
+  checkPluginUpgradeStatus,
+  checkThemeUpgradeStatus,
+  handleBindingPluginAppId,
+  handleBindingThemeAppId,
+  handleClearQueryCache,
+  handleForceUpgradePlugin,
+  handleForceUpgradeTheme,
+} = useAppDownload(app);
+
+const { matchedPlugin, matchedTheme, appType, hasInstalled: appHasInstalled } = useAppCompare(app);
+
+const hasInstalled = computed(() => {
+  if (appType.value === "PLUGIN") {
+    return matchedPlugin.value?.spec.version === props.release.release.spec.version;
+  }
+  if (appType.value === "THEME") {
+    return matchedTheme.value?.spec.version === props.release.release.spec.version;
+  }
+  return false;
+});
+
+const isSatisfies = computed(() => {
+  const { requires } = props.release.release.spec;
+  if (!haloVersion.value || !requires) return false;
+  return semver.satisfies(haloVersion.value, requires, { includePrerelease: true });
+});
+
+function getDownloadUrl(asset: ApplicationReleaseAsset) {
+  return `${import.meta.env.VITE_APP_STORE_BACKEND}/store/apps/${
+    app.value?.application.metadata.name
+  }/releases/download/${props.release.release.metadata.name}/assets/${asset.metadata.name}`;
+}
+
+const { isLoading: installing, mutate: handleInstall } = useMutation({
+  mutationKey: ["install-app-from-release"],
+  mutationFn: async ({ asset }: { asset: ApplicationReleaseAsset }) => {
+    const { version: releaseVersion } = props.release.release.spec;
+    const { version: currentVersion } = matchedPlugin.value?.spec || matchedTheme.value?.spec || {};
+
+    const downloadUrl = getDownloadUrl(asset);
+
+    if (appType.value === "PLUGIN") {
+      if (appHasInstalled.value) {
+        if (semver.gt(releaseVersion || "*", currentVersion || "*")) {
+          await handleForceUpgradePlugin(
+            matchedPlugin.value?.metadata.name as string,
+            downloadUrl,
+            props.release.release.spec.version
+          );
+        } else {
+          Dialog.warning({
+            title: "当前已安装较新的版本",
+            description: "确定要安装一个旧版本吗？",
+            async onConfirm() {
+              await handleForceUpgradePlugin(
+                matchedPlugin.value?.metadata.name as string,
+                downloadUrl,
+                props.release.release.spec.version
+              );
+            },
+          });
+        }
+      } else {
+        const { data: plugin } = await apiClient.plugin.installPluginFromUri({
+          installFromUriRequest: { uri: downloadUrl },
+        });
+        if (await checkPluginUpgradeStatus(plugin, props.release.release.spec.version)) {
+          await handleBindingPluginAppId({ plugin: plugin });
+          Toast.success("安装成功");
+          handleClearQueryCache();
+        }
+      }
+      return;
+    }
+
+    if (appType.value === "THEME") {
+      if (appHasInstalled.value) {
+        if (semver.gt(releaseVersion || "*", currentVersion || "*")) {
+          await handleForceUpgradeTheme(
+            matchedTheme.value?.metadata.name as string,
+            downloadUrl,
+            props.release.release.spec.version
+          );
+        } else {
+          Dialog.warning({
+            title: "当前已安装较新的版本",
+            description: "确定要安装一个旧版本吗？",
+            async onConfirm() {
+              await handleForceUpgradeTheme(
+                matchedTheme.value?.metadata.name as string,
+                downloadUrl,
+                props.release.release.spec.version
+              );
+            },
+          });
+        }
+      } else {
+        const { data: theme } = await apiClient.theme.installThemeFromUri({
+          installFromUriRequest: { uri: downloadUrl },
+        });
+        if (await checkThemeUpgradeStatus(theme, props.release.release.spec.version)) {
+          await handleBindingThemeAppId({ theme });
+          Toast.success("安装成功");
+          handleClearQueryCache();
+        }
+      }
+    }
+  },
+  onError(error: AxiosError<PluginInstallationErrorResponse | ThemeInstallationErrorResponse>, variables) {
+    Dialog.warning({
+      title: `当前${appType.value === "PLUGIN" ? "插件" : "主题"}已经安装，是否重新安装？`,
+      description:
+        "请确认当前安装的应用是否和已存在的应用一致，重新安装之后会记录应用的安装来源，后续可以通过应用市场进行升级。",
+      onConfirm: async () => {
+        if (!error.response?.data) {
+          return;
+        }
+
+        const downloadUrl = getDownloadUrl(variables.asset);
+
+        if ("pluginName" in error.response.data) {
+          await handleForceUpgradePlugin(
+            error.response.data.pluginName,
+            downloadUrl,
+            props.release.release.spec.version
+          );
+          return;
+        }
+
+        if ("themeName" in error.response.data) {
+          await handleForceUpgradeTheme(error.response.data.themeName, downloadUrl, props.release.release.spec.version);
+          return;
+        }
+      },
+    });
+  },
+});
 </script>
 
 <template>
@@ -76,10 +222,13 @@ const { handleInstall, installing } = useAppControl(app);
               </span>
             </div>
             <div>
+              <span v-if="hasInstalled" class="as-text-sm as-text-gray-600"> 已安装 </span>
+              <span v-else-if="!isSatisfies" class="as-text-sm as-text-gray-600"> 不兼容 </span>
               <span
+                v-else
                 class="as-text-sm as-text-blue-600 hover:as-text-blue-500"
                 :class="{ 'as-pointer-events-none': installing }"
-                @click="handleInstall()"
+                @click="handleInstall({ asset })"
               >
                 {{ installing ? "安装中" : "安装" }}
               </span>
