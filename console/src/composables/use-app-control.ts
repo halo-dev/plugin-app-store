@@ -9,18 +9,223 @@ import { apiClient } from "@/utils/api-client";
 import { STORE_APP_ID } from "@/constant";
 
 export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
-  const { appType, hasInstalled, isSatisfies } = useAppCompare(app);
+  const queryClient = useQueryClient();
+  const { appType, hasInstalled, isSatisfies, matchedPlugin, matchedTheme } = useAppCompare(app);
+  const { getDownloadUrl } = useAppRelease(app);
 
-  const { installing, handleInstall, handleUpgrade, upgrading } =
-    (function () {
+  const { mutate: handleInstall, isLoading: installing } = useMutation({
+    mutationKey: ["install-app"],
+    mutationFn: async () => {
+      const downloadUrl = await getDownloadUrl();
+      if (!downloadUrl) {
+        return;
+      }
+
       if (appType.value === "PLUGIN") {
-        return usePluginAppControl(app);
+        const { data: plugin } = await apiClient.plugin.installPluginFromUri({
+          installFromUriRequest: { uri: downloadUrl },
+        });
+        return await handleUpdatePluginAnnotations({
+          plugin,
+          additionalAnnotations: {
+            [STORE_APP_ID]: app.value?.application.metadata.name || "",
+          },
+        });
       }
+
       if (appType.value === "THEME") {
-        return useThemeAppControl(app);
+        const { data: theme } = await apiClient.theme.installThemeFromUri({
+          installFromUriRequest: { uri: downloadUrl },
+        });
+
+        return await handleUpdateThemeAnnotations({
+          theme,
+          additionalAnnotations: {
+            [STORE_APP_ID]: app.value?.application.metadata.name || "",
+          },
+        });
       }
-      return undefined;
-    })() || {};
+
+      Toast.error("未知的应用类型");
+    },
+    onSuccess() {
+      Toast.success("安装成功");
+      handleClearQueryCache();
+    },
+  });
+
+  const { mutateAsync: handleUpdatePluginAnnotations } = useMutation({
+    mutationKey: ["update-plugin-annotations"],
+    mutationFn: async ({
+      plugin,
+      additionalAnnotations,
+    }: {
+      plugin: Plugin;
+      additionalAnnotations: Record<string, string>;
+    }) => {
+      const { data: pluginToUpdate } = await apiClient.extension.plugin.getpluginHaloRunV1alpha1Plugin({
+        name: plugin.metadata.name,
+      });
+      pluginToUpdate.metadata.annotations = {
+        ...pluginToUpdate.metadata.annotations,
+        ...additionalAnnotations,
+      };
+      return await apiClient.extension.plugin.updatepluginHaloRunV1alpha1Plugin(
+        {
+          name: plugin.metadata.name,
+          plugin: pluginToUpdate,
+        },
+        { mute: true }
+      );
+    },
+    retry: 3,
+  });
+
+  const { mutateAsync: handleUpdateThemeAnnotations } = useMutation({
+    mutationKey: ["update-theme-annotations"],
+    mutationFn: async ({
+      theme,
+      additionalAnnotations,
+    }: {
+      theme: Theme;
+      additionalAnnotations: Record<string, string>;
+    }) => {
+      const { data: themeToUpdate } = await apiClient.extension.theme.getthemeHaloRunV1alpha1Theme({
+        name: theme.metadata.name,
+      });
+      themeToUpdate.metadata.annotations = {
+        ...themeToUpdate.metadata.annotations,
+        ...additionalAnnotations,
+      };
+      return await apiClient.extension.theme.updatethemeHaloRunV1alpha1Theme(
+        {
+          name: theme.metadata.name,
+          theme: themeToUpdate,
+        },
+        { mute: true }
+      );
+    },
+    retry: 3,
+  });
+
+  const { isLoading: upgrading, mutate: handleUpgrade } = useMutation({
+    mutationKey: ["upgrade-app"],
+    mutationFn: async () => {
+      const downloadUrl = await getDownloadUrl();
+
+      if (!downloadUrl) {
+        return;
+      }
+
+      if (appType.value === "PLUGIN") {
+        if (!matchedPlugin.value) {
+          Toast.error("未找到匹配的插件");
+          return;
+        }
+
+        const { data: upgradedPlugin } = await apiClient.plugin.upgradePluginFromUri({
+          name: matchedPlugin.value.metadata.name,
+          upgradeFromUriRequest: { uri: downloadUrl },
+        });
+
+        if (await checkPluginUpgradeStatus(matchedPlugin.value, app.value?.latestRelease?.spec.version)) {
+          return upgradedPlugin;
+        }
+        return;
+      }
+
+      if (appType.value === "THEME") {
+        if (!matchedTheme.value) {
+          Toast.error("未找到匹配的主题");
+          return;
+        }
+
+        const { data: upgradedTheme } = await apiClient.theme.upgradeThemeFromUri({
+          name: matchedTheme.value.metadata.name,
+          upgradeFromUriRequest: { uri: downloadUrl },
+        });
+
+        if (await checkThemeUpgradeStatus(matchedTheme.value, app.value?.latestRelease?.spec.version)) {
+          return upgradedTheme;
+        }
+        return;
+      }
+
+      Toast.error("未知的应用类型");
+    },
+    onSuccess() {
+      Toast.success("升级成功");
+      handleClearQueryCache();
+    },
+  });
+
+  function checkPluginUpgradeStatus(plugin: Plugin, expectVersion?: string) {
+    const maxRetry = 5;
+    let retryCount = 0;
+    return new Promise((resolve, reject) => {
+      const check = () => {
+        if (retryCount >= maxRetry) {
+          reject(false);
+          return;
+        }
+        apiClient.extension.plugin
+          .getpluginHaloRunV1alpha1Plugin({ name: plugin.metadata.name })
+          .then((response) => {
+            const { version } = response.data.spec;
+            if (version === expectVersion) {
+              resolve(true);
+            } else {
+              setTimeout(check, 1000);
+              retryCount++;
+            }
+          })
+          .catch(() => {
+            reject(false);
+          });
+      };
+      check();
+    });
+  }
+
+  function checkThemeUpgradeStatus(theme: Theme, expectVersion?: string) {
+    const maxRetry = 5;
+    let retryCount = 0;
+    return new Promise((resolve, reject) => {
+      const check = () => {
+        if (retryCount >= maxRetry) {
+          reject(false);
+          return;
+        }
+        apiClient.extension.theme
+          .getthemeHaloRunV1alpha1Theme({ name: theme.metadata.name })
+          .then((response) => {
+            const { version } = response.data.spec;
+            if (version === expectVersion) {
+              resolve(true);
+            } else {
+              setTimeout(check, 1000);
+              retryCount++;
+            }
+          })
+          .catch(() => {
+            reject(false);
+          });
+      };
+      check();
+    });
+  }
+
+  function handleClearQueryCache() {
+    if (appType.value === "THEME") {
+      queryClient.invalidateQueries({ queryKey: ["installed-themes"] });
+      queryClient.invalidateQueries({ queryKey: ["themes"] });
+      return;
+    }
+
+    if (appType.value === "PLUGIN") {
+      queryClient.invalidateQueries({ queryKey: ["plugins"] });
+    }
+  }
 
   const actions = computed(() => {
     return [
@@ -68,237 +273,6 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
   });
 
   return { installing, upgrading, handleInstall, handleUpgrade, action };
-}
-
-function usePluginAppControl(app: Ref<ApplicationSearchResult | undefined>) {
-  const queryClient = useQueryClient();
-  const { getDownloadUrl } = useAppRelease(app);
-  const { matchedPlugin } = useAppCompare(app);
-
-  const { mutate: handleInstall, isLoading: installing } = useMutation({
-    mutationKey: ["install-plugin"],
-    mutationFn: async () => {
-      const downloadUrl = await getDownloadUrl();
-      if (!downloadUrl) {
-        return;
-      }
-      const { data: plugin } = await apiClient.plugin.installPluginFromUri({
-        installFromUriRequest: { uri: downloadUrl },
-      });
-      return await handleUpdateAnnotations({
-        plugin,
-        additionalAnnotations: {
-          [STORE_APP_ID]: app.value?.application.metadata.name || "",
-        },
-      });
-    },
-    onSuccess() {
-      Toast.success("安装成功");
-      queryClient.invalidateQueries({ queryKey: ["plugins"] });
-    },
-  });
-
-  const { mutateAsync: handleUpdateAnnotations } = useMutation({
-    mutationKey: ["update-plugin-annotations"],
-    mutationFn: async ({
-      plugin,
-      additionalAnnotations,
-    }: {
-      plugin: Plugin;
-      additionalAnnotations: Record<string, string>;
-    }) => {
-      const { data: pluginToUpdate } = await apiClient.extension.plugin.getpluginHaloRunV1alpha1Plugin({
-        name: plugin.metadata.name,
-      });
-      pluginToUpdate.metadata.annotations = {
-        ...pluginToUpdate.metadata.annotations,
-        ...additionalAnnotations,
-      };
-      return await apiClient.extension.plugin.updatepluginHaloRunV1alpha1Plugin(
-        {
-          name: plugin.metadata.name,
-          plugin: pluginToUpdate,
-        },
-        { mute: true }
-      );
-    },
-    retry: 3,
-  });
-
-  const { isLoading: upgrading, mutate: handleUpgrade } = useMutation({
-    mutationKey: ["upgrade"],
-    mutationFn: async () => {
-      const downloadUrl = await getDownloadUrl();
-
-      if (!downloadUrl) {
-        return;
-      }
-
-      if (!matchedPlugin.value) {
-        Toast.error("未找到匹配的插件");
-        return;
-      }
-
-      const { data: upgradedPlugin } = await apiClient.plugin.upgradePluginFromUri({
-        name: matchedPlugin.value.metadata.name,
-        upgradeFromUriRequest: { uri: downloadUrl },
-      });
-
-      if (await checkPluginUpgradeStatus(matchedPlugin.value, app.value?.latestRelease?.spec.version)) {
-        return upgradedPlugin;
-      }
-      return;
-    },
-    onSuccess() {
-      Toast.success("升级成功");
-      queryClient.invalidateQueries({ queryKey: ["plugins"] });
-    },
-  });
-
-  function checkPluginUpgradeStatus(plugin: Plugin, expectVersion?: string) {
-    const maxRetry = 5;
-    let retryCount = 0;
-    return new Promise((resolve, reject) => {
-      const check = () => {
-        if (retryCount >= maxRetry) {
-          reject(false);
-          return;
-        }
-        apiClient.extension.plugin
-          .getpluginHaloRunV1alpha1Plugin({ name: plugin.metadata.name })
-          .then((response) => {
-            const { version } = response.data.spec;
-            if (version === expectVersion) {
-              resolve(true);
-            } else {
-              setTimeout(check, 1000);
-              retryCount++;
-            }
-          })
-          .catch(() => {
-            reject(false);
-          });
-      };
-      check();
-    });
-  }
-
-  return { handleInstall, installing, handleUpgrade, upgrading };
-}
-
-function useThemeAppControl(app: Ref<ApplicationSearchResult | undefined>) {
-  const queryClient = useQueryClient();
-  const { getDownloadUrl } = useAppRelease(app);
-  const { matchedTheme } = useAppCompare(app);
-
-  const { mutate: handleInstall, isLoading: installing } = useMutation({
-    mutationKey: ["install-theme"],
-    mutationFn: async () => {
-      const downloadUrl = await getDownloadUrl();
-      if (!downloadUrl) {
-        return;
-      }
-      const { data: theme } = await apiClient.theme.installThemeFromUri({
-        installFromUriRequest: { uri: downloadUrl },
-      });
-      return await handleUpdateAnnotations({
-        theme,
-        additionalAnnotations: {
-          [STORE_APP_ID]: app.value?.application.metadata.name || "",
-        },
-      });
-    },
-    onSuccess() {
-      Toast.success("安装成功");
-      queryClient.invalidateQueries({ queryKey: ["installed-themes"] });
-    },
-  });
-
-  const { mutateAsync: handleUpdateAnnotations } = useMutation({
-    mutationKey: ["update-theme-annotations"],
-    mutationFn: async ({
-      theme,
-      additionalAnnotations,
-    }: {
-      theme: Theme;
-      additionalAnnotations: Record<string, string>;
-    }) => {
-      const { data: themeToUpdate } = await apiClient.extension.theme.getthemeHaloRunV1alpha1Theme({
-        name: theme.metadata.name,
-      });
-      themeToUpdate.metadata.annotations = {
-        ...themeToUpdate.metadata.annotations,
-        ...additionalAnnotations,
-      };
-      return await apiClient.extension.theme.updatethemeHaloRunV1alpha1Theme(
-        {
-          name: theme.metadata.name,
-          theme: themeToUpdate,
-        },
-        { mute: true }
-      );
-    },
-    retry: 3,
-  });
-
-  const { isLoading: upgrading, mutate: handleUpgrade } = useMutation({
-    mutationKey: ["upgrade-theme"],
-    mutationFn: async () => {
-      const downloadUrl = await getDownloadUrl();
-      if (!downloadUrl) {
-        return;
-      }
-
-      if (!matchedTheme.value) {
-        Toast.error("未找到匹配的主题");
-        return;
-      }
-
-      const { data: upgradedTheme } = await apiClient.theme.upgradeThemeFromUri({
-        name: matchedTheme.value.metadata.name,
-        upgradeFromUriRequest: { uri: downloadUrl },
-      });
-
-      if (await checkThemeUpgradeStatus(matchedTheme.value, app.value?.latestRelease?.spec.version)) {
-        return upgradedTheme;
-      }
-      return;
-    },
-    onSuccess() {
-      Toast.success("升级成功");
-      queryClient.invalidateQueries({ queryKey: ["installed-themes"] });
-    },
-  });
-
-  function checkThemeUpgradeStatus(theme: Theme, expectVersion?: string) {
-    const maxRetry = 5;
-    let retryCount = 0;
-    return new Promise((resolve, reject) => {
-      const check = () => {
-        if (retryCount >= maxRetry) {
-          reject(false);
-          return;
-        }
-        apiClient.extension.theme
-          .getthemeHaloRunV1alpha1Theme({ name: theme.metadata.name })
-          .then((response) => {
-            const { version } = response.data.spec;
-            if (version === expectVersion) {
-              resolve(true);
-            } else {
-              setTimeout(check, 1000);
-              retryCount++;
-            }
-          })
-          .catch(() => {
-            reject(false);
-          });
-      };
-      check();
-    });
-  }
-
-  return { handleInstall, installing, handleUpgrade, upgrading };
 }
 
 function useAppRelease(app: Ref<ApplicationSearchResult | undefined>) {
