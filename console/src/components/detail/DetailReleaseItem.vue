@@ -9,9 +9,11 @@ import TablerCloudDownload from "~icons/tabler/cloud-download";
 const props = withDefaults(
   defineProps<{
     release: ReleaseDetail;
-    app: ApplicationSearchResult;
+    app?: ApplicationSearchResult;
   }>(),
-  {}
+  {
+    app: undefined,
+  }
 );
 
 const { app } = toRefs(props);

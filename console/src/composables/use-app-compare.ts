@@ -24,7 +24,7 @@ export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
   });
 
   const { data: installedThemes } = useQuery<Theme[]>({
-    queryKey: ["installed-themes"],
+    queryKey: ["themes"],
     queryFn: async () => {
       const { data } = await axios.get<ThemeList>("/apis/api.console.halo.run/v1alpha1/themes?uninstalled=false");
       return data.items;
