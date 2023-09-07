@@ -5,7 +5,7 @@ plugins {
     id "run.halo.plugin.devtools" version "0.0.5"
 }
 
-group 'run.halo.starter'
+group 'run.halo.appstore'
 sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
