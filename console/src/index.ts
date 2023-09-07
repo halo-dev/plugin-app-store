@@ -9,6 +9,8 @@ import AppStore from "./views/AppStore.vue";
 import type { Plugin, Theme } from "@halo-dev/api-client";
 import PluginVersionCheckField from "./components/entity-fields/PluginVersionCheckField.vue";
 import ThemeVersionCheckOperationItem from "./components/operation-items/ThemeVersionCheckOperationItem.vue";
+import ViewAppStoreOperationItem from "./components/operation-items/ViewAppStoreOperationItem.vue";
+import { STORE_APP_ID } from "./constant";
 
 export default definePlugin({
   routes: [
@@ -78,6 +80,18 @@ export default definePlugin({
           props: {
             theme,
           },
+        },
+      ];
+    },
+    "plugin:list-item:operation:create": (plugin: Ref<Plugin>) => {
+      return [
+        {
+          priority: 11,
+          component: markRaw(ViewAppStoreOperationItem),
+          props: {
+            appId: plugin.value.metadata.annotations?.[STORE_APP_ID],
+          },
+          hidden: !plugin.value.metadata.annotations?.[STORE_APP_ID],
         },
       ];
     },
