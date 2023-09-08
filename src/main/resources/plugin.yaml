@@ -13,7 +13,7 @@ spec:
   logo: logo.svg
   homepage: https://github.com/halo-dev/plugin-app-store
   displayName: "应用市场"
-  description: "集成 Halo 官方应用市场"
+  description: "Console 集成 Halo 官方应用市场"
   license:
     - name: "GPL-3.0"
       url: "https://github.com/halo-dev/plugin-app-store/blob/main/LICENSE"
