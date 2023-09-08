@@ -2,6 +2,8 @@ apiVersion: plugin.halo.run/v1alpha1
 kind: Plugin
 metadata:
   name: app-store-integration
+  annotations:
+    "store.halo.run/app-id": "app-VYJbF"
 spec:
   enabled: true
   requires: ">=2.9.0"
