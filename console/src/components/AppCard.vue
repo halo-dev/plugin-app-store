@@ -1,12 +1,11 @@
 <script lang="ts" setup>
-import { useAppControl } from "@/composables/use-app-control";
 import type { ApplicationSearchResult } from "@/types";
 import { relativeTimeTo } from "@/utils/date";
-import { VButton } from "@halo-dev/components";
 import { toRefs } from "vue";
 import { computed } from "vue";
 import { prependDomain } from "@/utils/resource";
 import AppVersionCheckBar from "./AppVersionCheckBar.vue";
+import AppActionButton from "./AppActionButton.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -40,8 +39,6 @@ const vendor = computed(() => {
     logo: props.app.owner.avatar,
   };
 });
-
-const { action } = useAppControl(app);
 </script>
 
 <template>
@@ -155,16 +152,7 @@ const { action } = useAppControl(app);
           </span>
         </div>
         <div>
-          <VButton
-            v-if="action"
-            size="sm"
-            :type="action.type"
-            :disabled="action.disabled"
-            :loading="action.loading"
-            @click="action.onClick"
-          >
-            {{ action.label }}
-          </VButton>
+          <AppActionButton :app="app" size="sm" />
         </div>
       </div>
     </div>

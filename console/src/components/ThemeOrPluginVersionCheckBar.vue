@@ -3,7 +3,7 @@ import type { Plugin, Theme } from "@halo-dev/api-client";
 import AppDetailModal from "./AppDetailModal.vue";
 import { nextTick, ref, toRefs } from "vue";
 import { usePluginVersion } from "@/composables/use-plugin-version";
-import { useAppControl } from "@/composables/use-app-control";
+import { useAppDownload } from "@/composables/use-app-download";
 import RiArrowUpCircleLine from "~icons/ri/arrow-up-circle-line";
 import { useThemeVersion } from "@/composables/use-theme-version";
 import { useAppCompare } from "@/composables/use-app-compare";
@@ -38,7 +38,7 @@ function useVersion() {
 
 const { hasUpdate, matchedApp } = useVersion();
 const { isSatisfies } = useAppCompare(matchedApp);
-const { upgrading, handleUpgrade } = useAppControl(matchedApp);
+const { upgrading, handleUpgrade } = useAppDownload(matchedApp);
 
 const detailModal = ref(false);
 const detailModalVisible = ref(false);
