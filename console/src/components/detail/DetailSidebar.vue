@@ -3,7 +3,6 @@ import type { ApplicationDetail } from "@/types";
 import { relativeTimeTo } from "@/utils/date";
 import TablerGraph from "~icons/tabler/graph";
 import TablerDownload from "~icons/tabler/download";
-
 withDefaults(
   defineProps<{
     app?: ApplicationDetail;
@@ -120,7 +119,7 @@ withDefaults(
                     <span class="as-text-xs as-text-gray-500">下载</span>
                   </div>
                   <span class="as-font-semibold as-tabular-nums">
-                    {{ app.downloads }}
+                    {{ app.downloads || 0 }}
                   </span>
                 </div>
               </div>
