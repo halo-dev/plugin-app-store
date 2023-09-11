@@ -17,6 +17,7 @@
     "dayjs": "^1.11.9",
     "github-markdown-css": "^5.2.0",
     "pretty-bytes": "^6.1.1",
+    "qs": "^6.11.2",
     "semver": "^7.5.4",
     "vue": "^3.3.4",
     "vue-i18n": "^9.2.2"

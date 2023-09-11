@@ -1,11 +1,10 @@
 import { AppType, STORE_APP_ID } from "@/constant";
 import type { ApplicationSearchResult } from "@/types";
-import type { Plugin, PluginList, Theme, ThemeList } from "@halo-dev/api-client";
-import { useQuery } from "@tanstack/vue-query";
-import axios from "axios";
 import { computed, type Ref } from "vue";
 import semver from "semver";
 import { useHaloVersion } from "./use-halo-version";
+import { useFetchInstalledPlugins } from "./use-plugin";
+import { useFetchInstalledThemes } from "./use-theme";
 
 export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
   const { haloVersion } = useHaloVersion();
@@ -14,23 +13,8 @@ export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
     return app.value?.application.spec.type;
   });
 
-  const { data: installedPlugins } = useQuery<Plugin[]>({
-    queryKey: ["plugins"],
-    queryFn: async () => {
-      const { data } = await axios.get<PluginList>(`/apis/api.console.halo.run/v1alpha1/plugins`);
-      return data.items;
-    },
-    enabled: computed(() => appType.value === AppType.PLUGIN),
-  });
-
-  const { data: installedThemes } = useQuery<Theme[]>({
-    queryKey: ["themes"],
-    queryFn: async () => {
-      const { data } = await axios.get<ThemeList>("/apis/api.console.halo.run/v1alpha1/themes?uninstalled=false");
-      return data.items;
-    },
-    enabled: computed(() => appType.value === AppType.THEME),
-  });
+  const { installedPlugins } = useFetchInstalledPlugins(computed(() => appType.value === AppType.PLUGIN));
+  const { installedThemes } = useFetchInstalledThemes(computed(() => appType.value === AppType.THEME));
 
   const matchedPlugin = computed(() => {
     if (appType.value === AppType.PLUGIN) {

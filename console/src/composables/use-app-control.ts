@@ -218,12 +218,13 @@ export function useAppControl(app: Ref<ApplicationSearchResult | undefined>) {
   function handleClearQueryCache() {
     if (appType.value === "THEME") {
       queryClient.invalidateQueries({ queryKey: ["installed-themes"] });
-      queryClient.invalidateQueries({ queryKey: ["themes"] });
+      queryClient.invalidateQueries({ queryKey: ["store-installed-themes"] });
       return;
     }
 
     if (appType.value === "PLUGIN") {
       queryClient.invalidateQueries({ queryKey: ["plugins"] });
+      queryClient.invalidateQueries({ queryKey: ["store-installed-plugins"] });
     }
   }
 
