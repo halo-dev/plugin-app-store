@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import AppDetailModal from "./AppDetailModal.vue";
 import { nextTick, ref, toRefs } from "vue";
-import { useAppControl } from "@/composables/use-app-control";
+import { useAppDownload } from "@/composables/use-app-download";
 import RiArrowUpCircleLine from "~icons/ri/arrow-up-circle-line";
 import type { ApplicationSearchResult } from "@/types";
 import { useAppCompare } from "@/composables/use-app-compare";
@@ -19,7 +19,7 @@ const { app } = toRefs(props);
 
 const { hasUpdate, isSatisfies } = useAppCompare(app);
 
-const { upgrading, handleUpgrade } = useAppControl(app);
+const { upgrading, handleUpgrade } = useAppDownload(app);
 
 const detailModal = ref(false);
 const detailModalVisible = ref(false);

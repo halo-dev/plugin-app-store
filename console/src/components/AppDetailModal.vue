@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconLink, VButton, VLoading, VModal, VSpace, VTabItem, VTabs } from "@halo-dev/components";
+import { IconLink, VLoading, VModal, VSpace, VTabItem, VTabs } from "@halo-dev/components";
 import { useQuery } from "@tanstack/vue-query";
 import { ref } from "vue";
 import { computed } from "vue";
@@ -7,11 +7,12 @@ import { toRefs } from "vue";
 import { prependDomain } from "@/utils/resource";
 import type { ApplicationSearchResult } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
-import { useAppControl } from "@/composables/use-app-control";
 import DetailSidebar from "./detail/DetailSidebar.vue";
 import DetailReadme from "./detail/DetailReadme.vue";
 import DetailReleases from "./detail/DetailReleases.vue";
 import AppVersionCheckBar from "./AppVersionCheckBar.vue";
+import AppActionButton from "./AppActionButton.vue";
+
 const props = withDefaults(
   defineProps<{
     visible: boolean;
@@ -65,8 +66,6 @@ const title = computed(() => {
 });
 
 const activeId = ref(props.tab);
-
-const { action } = useAppControl(app);
 </script>
 
 <template>
@@ -141,15 +140,7 @@ const { action } = useAppControl(app);
     </div>
     <template #footer>
       <VSpace>
-        <VButton
-          v-if="action"
-          :type="action.type"
-          :disabled="action.disabled"
-          :loading="action.loading"
-          @click="action.onClick"
-        >
-          {{ action.label }}
-        </VButton>
+        <AppActionButton :app="app" />
         <AppVersionCheckBar :app="app" />
       </VSpace>
     </template>
