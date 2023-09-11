@@ -2,29 +2,35 @@ import type { ApplicationSearchResult, ListResponse } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
 import type { Plugin } from "@halo-dev/api-client";
 import { useQuery } from "@tanstack/vue-query";
-import { computed, type Ref } from "vue";
+import { computed, ref, type Ref } from "vue";
 import semver from "semver";
 import { useHaloVersion } from "./use-halo-version";
 import { STORE_APP_ID } from "@/constant";
+import { useFetchInstalledPlugins } from "./use-plugin";
 
 export function usePluginVersion(plugin: Ref<Plugin | undefined>) {
   const { haloVersion } = useHaloVersion();
 
-  // TODO: 可能需要专门的最新版本应用列表接口
+  const { installedPlugins } = useFetchInstalledPlugins(ref(true));
+
   const { data: storePlugins } = useQuery<ListResponse<ApplicationSearchResult>>({
     queryKey: ["plugin-apps"],
     queryFn: async () => {
+      const appIds = installedPlugins.value?.map((plugin) => plugin.metadata.annotations?.[STORE_APP_ID]) || [];
+
       const { data } = await storeApiClient.get<ListResponse<ApplicationSearchResult>>(
         `/apis/api.store.halo.run/v1alpha1/applications`,
         {
           params: {
             type: "PLUGIN",
+            names: appIds,
           },
         }
       );
       return data;
     },
     staleTime: 1000,
+    enabled: computed(() => !!installedPlugins.value?.length),
   });
 
   const matchedApp = computed(() => {
