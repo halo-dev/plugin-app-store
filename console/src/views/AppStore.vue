@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 import AppCard from "@/components/AppCard.vue";
 import AppDetailModal from "@/components/AppDetailModal.vue";
+import { useFetchInstalledPlugins } from "@/composables/use-plugin";
+import { useFetchInstalledThemes } from "@/composables/use-theme";
+import { STORE_APP_ID } from "@/constant";
 import type { ApplicationSearchResult, ListResponse } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
 import {
@@ -19,7 +22,7 @@ import {
 } from "@halo-dev/components";
 import { useQuery } from "@tanstack/vue-query";
 import { useLocalStorage } from "@vueuse/core";
-import { nextTick } from "vue";
+import { computed, nextTick } from "vue";
 import { ref } from "vue";
 import RiApps2Line from "~icons/ri/apps-2-line";
 
@@ -72,10 +75,31 @@ const size = ref(20);
 const selectedSort = ref("latestReleaseTimestamp,desc");
 const selectedPriceMode = ref();
 const selectedType = ref();
+const onlyQueryInstalled = ref(false);
+
+const { installedPlugins } = useFetchInstalledPlugins(onlyQueryInstalled);
+const { installedThemes } = useFetchInstalledThemes(onlyQueryInstalled);
 
 const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<ApplicationSearchResult>>({
-  queryKey: ["store-apps", keyword, selectedSort, page, size, selectedPriceMode, selectedType],
+  queryKey: ["store-apps", keyword, selectedSort, page, size, selectedPriceMode, selectedType, onlyQueryInstalled],
   queryFn: async () => {
+    const appIds: string[] = [];
+    if (onlyQueryInstalled.value) {
+      if (installedPlugins.value?.length) {
+        appIds.push(
+          ...((installedPlugins.value?.map((plugin) => plugin.metadata.annotations?.[STORE_APP_ID]) || []).filter(
+            Boolean
+          ) as string[])
+        );
+      }
+      if (installedThemes.value?.length) {
+        appIds.push(
+          ...((installedThemes.value?.map((theme) => theme.metadata.annotations?.[STORE_APP_ID]) || []).filter(
+            Boolean
+          ) as string[])
+        );
+      }
+    }
     const { data } = await storeApiClient.get<ListResponse<ApplicationSearchResult>>(
       `/apis/api.store.halo.run/v1alpha1/applications`,
       {
@@ -86,6 +110,7 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
           size: size.value,
           priceMode: selectedPriceMode.value,
           type: selectedType.value,
+          names: appIds,
         },
       }
     );
@@ -95,6 +120,12 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
     page.value = data.page;
     size.value = data.size;
   },
+  enabled: computed(() => {
+    if (onlyQueryInstalled.value) {
+      return !!installedPlugins.value && !!installedThemes.value;
+    }
+    return true;
+  }),
 });
 
 // detail modal
@@ -160,6 +191,25 @@ const handleSelectNext = async () => {
             </div>
             <div class="as-mt-4 as-flex sm:as-mt-0">
               <VSpace spacing="lg">
+                <div class="as-relative as-flex as-items-center as-gap-2.5">
+                  <div class="as-flex as-items-center">
+                    <input
+                      id="onlyQueryInstalled"
+                      v-model="onlyQueryInstalled"
+                      type="checkbox"
+                      class="as-h-3.5 as-w-3.5 as-rounded as-border-gray-300 as-text-indigo-600 focus:as-ring-indigo-600"
+                    />
+                  </div>
+                  <div class="as-text-sm">
+                    <label
+                      for="onlyQueryInstalled"
+                      class="as-text-sm as-text-gray-700 hover:as-text-black"
+                      :class="{ 'as-font-semibold as-text-gray-700': onlyQueryInstalled }"
+                    >
+                      已安装
+                    </label>
+                  </div>
+                </div>
                 <FilterDropdown
                   v-model="selectedSort"
                   :label="$t('core.common.filters.labels.sort')"
