@@ -123,7 +123,7 @@ const handleSelectNext = async () => {
 };
 
 // page refresh
-watch([selectedPriceMode, selectedSort], () => {
+watch([selectedPriceMode, selectedSort, keyword], () => {
   page.value = 1;
 });
 </script>
