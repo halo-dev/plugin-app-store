@@ -177,7 +177,7 @@ const handleSelectNext = async () => {
             </div>
           </div>
           <div class="as-flex as-flex-row as-gap-2">
-            <div class="group as-cursor-pointer as-rounded as-p-1 hover:as-bg-gray-200" @click="refetch()">
+            <div class="as-group as-cursor-pointer as-rounded as-p-1 hover:as-bg-gray-200" @click="refetch()">
               <IconRefreshLine
                 v-tooltip="$t('core.common.buttons.refresh')"
                 :class="{ 'as-animate-spin as-text-gray-900': isFetching }"

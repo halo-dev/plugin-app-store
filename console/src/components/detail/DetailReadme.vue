@@ -54,9 +54,9 @@ function getReadme() {
       <li
         v-for="(screenshot, index) in app.application.spec.screenshots"
         :key="index"
-        class="group as-relative as-w-72 as-cursor-pointer as-overflow-hidden as-rounded"
+        class="as-group as-relative as-w-72 as-cursor-pointer as-overflow-hidden as-rounded"
       >
-        <div class="group as-aspect-h-10 as-aspect-w-16 as-block as-w-full as-bg-gray-100">
+        <div class="as-aspect-h-10 as-aspect-w-16 as-block as-w-full as-bg-gray-100">
           <img
             :src="prependDomain(screenshot.url)"
             :alt="screenshot.description"
