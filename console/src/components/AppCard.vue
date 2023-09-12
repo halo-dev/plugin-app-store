@@ -43,7 +43,7 @@ const vendor = computed(() => {
 
 <template>
   <div
-    class="group as-relative as-flex as-grid-cols-1 as-flex-col as-overflow-hidden as-rounded as-bg-white as-p-0 as-shadow-sm as-ring-1 as-ring-gray-100 as-transition-all as-duration-500 hover:as-shadow-md hover:as-ring-inherit sm:as-grid sm:as-grid-cols-7 sm:as-p-2"
+    class="as-group as-relative as-flex as-grid-cols-1 as-flex-col as-overflow-hidden as-rounded as-bg-white as-p-0 as-shadow-sm as-ring-1 as-ring-gray-100 as-transition-all as-duration-500 hover:as-shadow-md hover:as-ring-inherit sm:as-grid sm:as-grid-cols-7 sm:as-p-2"
     :class="[
       {
         '!as-grid-cols-1 !as-p-0': !block,
