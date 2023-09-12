@@ -54,8 +54,8 @@ const vendor = computed(() => {
       <div class="as-relative as-block">
         <div v-if="screenshots?.length !== 0" class="as-aspect-h-9 as-aspect-w-16">
           <img
-            class="as-pointer-events-none as-transform-gpu as-rounded-none as-object-cover sm:as-rounded"
-            :class="{ '!as-rounded-none': !block }"
+            class="as-pointer-events-none as-transform-gpu as-rounded-b-none as-rounded-t as-object-cover sm:as-rounded"
+            :class="{ '!as-rounded-b-none !as-rounded-t': !block }"
             :src="prependDomain(screenshots?.[0].url)"
             :alt="app.application.spec.displayName"
             loading="lazy"
@@ -63,15 +63,15 @@ const vendor = computed(() => {
         </div>
         <div v-else class="as-aspect-h-9 as-aspect-w-16">
           <div
-            class="as-transform-gpu as-rounded-none as-bg-cover as-bg-center as-bg-no-repeat sm:as-rounded"
-            :class="{ '!as-rounded-none': !block }"
+            class="as-transform-gpu as-rounded-b-none as-rounded-t as-bg-cover as-bg-center as-bg-no-repeat sm:as-rounded"
+            :class="{ '!as-rounded-b-none !as-rounded-t': !block }"
             :style="{
               backgroundImage: `url(${prependDomain(app.application.spec.logo)})`,
             }"
           >
             <div
-              :class="{ '!as-rounded-none': !block }"
-              class="as-flex as-h-full as-w-full as-items-center as-justify-center as-rounded-none as-backdrop-blur-3xl sm:as-rounded"
+              :class="{ '!as-rounded-b-none !as-rounded-t': !block }"
+              class="as-flex as-h-full as-w-full as-items-center as-justify-center as-rounded-b-none as-rounded-t as-backdrop-blur-3xl sm:as-rounded"
             >
               <img class="as-h-16 as-w-16 as-rounded" :src="prependDomain(app.application.spec.logo)" />
             </div>
