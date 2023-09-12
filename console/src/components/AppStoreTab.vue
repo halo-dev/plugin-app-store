@@ -12,7 +12,7 @@ import {
   VPagination,
   VSpace,
 } from "@halo-dev/components";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import AppCard from "./AppCard.vue";
 import { useLocalStorage } from "@vueuse/core";
 import AppDetailModal from "./AppDetailModal.vue";
@@ -121,6 +121,11 @@ const handleSelectNext = async () => {
     selectedApp.value = items[0];
   }
 };
+
+// page refresh
+watch([selectedPriceMode, selectedSort], () => {
+  page.value = 1;
+});
 </script>
 
 <template>
