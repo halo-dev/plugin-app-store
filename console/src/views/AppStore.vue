@@ -173,7 +173,7 @@ const handleSelectNext = async () => {
   }
 };
 // page refresh
-watch([selectedPriceMode, selectedType], () => {
+watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled], () => {
   page.value = 1;
 });
 </script>
