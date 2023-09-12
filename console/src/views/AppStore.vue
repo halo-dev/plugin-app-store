@@ -22,7 +22,7 @@ import {
 } from "@halo-dev/components";
 import { useQuery } from "@tanstack/vue-query";
 import { useLocalStorage } from "@vueuse/core";
-import { computed, nextTick } from "vue";
+import { computed, nextTick, watch } from "vue";
 import { ref } from "vue";
 import RiApps2Line from "~icons/ri/apps-2-line";
 
@@ -172,6 +172,10 @@ const handleSelectNext = async () => {
     selectedApp.value = items[0];
   }
 };
+// page refresh
+watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keyword], () => {
+  page.value = 1;
+});
 </script>
 
 <template>
