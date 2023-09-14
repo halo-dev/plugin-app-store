@@ -67,7 +67,7 @@ const viewTypes = [
   },
 ];
 
-const viewType = useLocalStorage<string>("app-store-list-view", "list");
+const viewType = useLocalStorage<string>("app-store-list-view", "grid");
 
 const keyword = ref("");
 const page = ref(1);
