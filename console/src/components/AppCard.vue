@@ -43,7 +43,7 @@ const vendor = computed(() => {
 
 <template>
   <div
-    class="as-group as-relative as-flex as-grid-cols-1 as-flex-col as-overflow-hidden as-rounded as-bg-white as-p-0 as-shadow-sm as-ring-1 as-ring-gray-100 as-transition-all as-duration-500 hover:as-shadow-md hover:as-ring-inherit sm:as-grid sm:as-grid-cols-7 sm:as-p-2"
+    class="as-group as-relative as-flex as-grid-cols-1 as-flex-col as-overflow-hidden as-rounded-md as-bg-white as-p-0 as-shadow-sm as-ring-1 as-ring-gray-100 as-transition-all as-duration-500 hover:as-shadow-md hover:as-ring-inherit sm:as-grid sm:as-grid-cols-7 sm:as-p-2"
     :class="[
       {
         '!as-grid-cols-1 !as-p-0': !block,
@@ -54,8 +54,8 @@ const vendor = computed(() => {
       <div class="as-relative as-block">
         <div v-if="screenshots?.length !== 0" class="as-aspect-h-9 as-aspect-w-16">
           <img
-            class="as-pointer-events-none as-transform-gpu as-rounded-b-none as-rounded-t as-object-cover sm:as-rounded"
-            :class="{ '!as-rounded-b-none !as-rounded-t': !block }"
+            class="as-pointer-events-none as-transform-gpu as-rounded-b-none as-rounded-t-md as-object-cover sm:as-rounded-md"
+            :class="{ '!as-rounded-b-none !as-rounded-t-md': !block }"
             :src="prependDomain(screenshots?.[0].url)"
             :alt="app.application.spec.displayName"
             loading="lazy"
@@ -63,17 +63,17 @@ const vendor = computed(() => {
         </div>
         <div v-else class="as-aspect-h-9 as-aspect-w-16">
           <div
-            class="as-transform-gpu as-rounded-b-none as-rounded-t as-bg-cover as-bg-center as-bg-no-repeat sm:as-rounded"
-            :class="{ '!as-rounded-b-none !as-rounded-t': !block }"
+            class="as-transform-gpu as-rounded-b-none as-rounded-t-md as-bg-cover as-bg-center as-bg-no-repeat sm:as-rounded-md"
+            :class="{ '!as-rounded-b-none !as-rounded-t-md': !block }"
             :style="{
               backgroundImage: `url(${prependDomain(app.application.spec.logo)})`,
             }"
           >
             <div
-              :class="{ '!as-rounded-b-none !as-rounded-t': !block }"
-              class="as-flex as-h-full as-w-full as-items-center as-justify-center as-rounded-b-none as-rounded-t as-backdrop-blur-3xl sm:as-rounded"
+              :class="{ '!as-rounded-b-none !as-rounded-t-md': !block }"
+              class="as-flex as-h-full as-w-full as-items-center as-justify-center as-rounded-b-none as-rounded-t-md as-backdrop-blur-3xl sm:as-rounded-md"
             >
-              <img class="as-h-16 as-w-16 as-rounded" :src="prependDomain(app.application.spec.logo)" />
+              <img class="as-h-16 as-w-16 as-rounded-md" :src="prependDomain(app.application.spec.logo)" />
             </div>
           </div>
         </div>
