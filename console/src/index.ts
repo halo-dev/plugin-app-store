@@ -6,6 +6,7 @@ import "github-markdown-css/github-markdown-light.css";
 import "./styles/index.scss";
 import RiApps2Line from "~icons/ri/apps-2-line";
 import AppStore from "./views/AppStore.vue";
+import PrivacyPolicy from "./views/PrivacyPolicy.vue";
 import type { Plugin, Theme } from "@halo-dev/api-client";
 import PluginVersionCheckField from "./components/entity-fields/PluginVersionCheckField.vue";
 import ThemeVersionCheckOperationItem from "./components/operation-items/ThemeVersionCheckOperationItem.vue";
@@ -31,6 +32,17 @@ export default definePlugin({
             icon: markRaw(RiApps2Line),
             priority: 5,
           },
+        },
+      },
+    },
+    {
+      parentName: "Root",
+      route: {
+        path: "/app-store/privacy-policy",
+        name: "PrivacyPolicy",
+        component: PrivacyPolicy,
+        meta: {
+          title: "Halo 应用市场隐私政策",
         },
       },
     },

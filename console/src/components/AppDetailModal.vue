@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { IconLink, VLoading, VModal, VSpace, VTabItem, VTabs } from "@halo-dev/components";
 import { useQuery } from "@tanstack/vue-query";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { computed } from "vue";
 import { toRefs } from "vue";
 import { prependDomain } from "@/utils/resource";
-import type { ApplicationSearchResult } from "@/types";
+import type { ApplicationDetail, ApplicationSearchResult } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
 import DetailSidebar from "./detail/DetailSidebar.vue";
 import DetailReadme from "./detail/DetailReadme.vue";
@@ -33,6 +33,7 @@ const emit = defineEmits<{
 
 const onVisibleChange = (visible: boolean) => {
   emit("update:visible", visible);
+
   if (!visible) {
     setTimeout(() => {
       activeId.value = "readme";
@@ -47,9 +48,12 @@ const {
   data: appDetail,
   isLoading,
   isFetching,
-} = useQuery({
+} = useQuery<ApplicationDetail>({
   queryKey: ["store-app", app, visible],
   queryFn: async () => {
+    if (!visible.value || !app.value) {
+      return;
+    }
     const { data } = await storeApiClient.get(
       `/apis/api.store.halo.run/v1alpha1/applications/${app.value?.application.metadata.name}`
     );
@@ -66,6 +70,31 @@ const title = computed(() => {
 });
 
 const activeId = ref(props.tab);
+
+watch(
+  () => appDetail.value,
+  (value) => {
+    if (!(props.visible && value)) {
+      return;
+    }
+    const {
+      screen: { width, height },
+      navigator: { language },
+      document,
+    } = window;
+    storeApiClient.post(`/apis/api.store.halo.run/tracker`, {
+      type: "pageView",
+      payload: {
+        hostname: "halo.run",
+        screen: `${width}x${height}`,
+        language: language,
+        title: `应用：${value.application.spec.displayName} - Halo 建站 - 强大易用的开源建站工具`,
+        url: `/store/apps/${value.application.metadata.name}`,
+        referrer: document.referrer,
+      },
+    });
+  }
+);
 </script>
 
 <template>
@@ -93,7 +122,7 @@ const activeId = ref(props.tab);
     </template>
     <div>
       <VLoading v-if="isLoading || isFetching" />
-      <div v-else-if="app" class="as-flex as-flex-col-reverse as-gap-5 sm:as-grid sm:as-grid-cols-8">
+      <div v-else-if="appDetail" class="as-flex as-flex-col-reverse as-gap-5 sm:as-grid sm:as-grid-cols-8">
         <DetailSidebar :app="appDetail" />
         <div class="as-col-span-5 lg:as-col-span-6">
           <div class="as-flex as-flex-wrap as-items-center as-gap-4">

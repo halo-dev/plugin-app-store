@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import AgreementsModal from "@/components/AgreementsModal.vue";
 import AppCard from "@/components/AppCard.vue";
 import AppDetailModal from "@/components/AppDetailModal.vue";
 import { useFetchInstalledPlugins } from "@/composables/use-plugin";
@@ -172,6 +173,7 @@ const handleSelectNext = async () => {
     selectedApp.value = items[0];
   }
 };
+
 // page refresh
 watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keyword], () => {
   page.value = 1;
@@ -365,5 +367,7 @@ watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keywor
         </span>
       </template>
     </AppDetailModal>
+
+    <AgreementsModal />
   </div>
 </template>
