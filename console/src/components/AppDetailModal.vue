@@ -160,7 +160,6 @@ watch(
                 <VTabItem id="releases" label="版本">
                   <DetailReleases :app="app" />
                 </VTabItem>
-                <VTabItem id="comment" label="讨论"> </VTabItem>
               </VTabs>
             </div>
           </div>
