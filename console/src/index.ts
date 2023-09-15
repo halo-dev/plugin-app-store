@@ -10,6 +10,7 @@ import type { Plugin, Theme } from "@halo-dev/api-client";
 import PluginVersionCheckField from "./components/entity-fields/PluginVersionCheckField.vue";
 import ThemeVersionCheckOperationItem from "./components/operation-items/ThemeVersionCheckOperationItem.vue";
 import PluginBindingCheckField from "./components/entity-fields/PluginBindingCheckField.vue";
+import ThemeBindingCheckOperationItem from "./components/operation-items/ThemeBindingCheckOperationItem.vue";
 import ViewAppStoreOperationItem from "./components/operation-items/ViewAppStoreOperationItem.vue";
 import { STORE_APP_ID } from "./constant";
 
@@ -90,6 +91,14 @@ export default definePlugin({
           props: {
             theme,
           },
+        },
+        {
+          priority: 1,
+          component: markRaw(ThemeBindingCheckOperationItem),
+          props: {
+            theme,
+          },
+          hidden: !!theme.value.metadata.annotations?.[STORE_APP_ID],
         },
       ];
     },
