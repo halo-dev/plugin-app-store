@@ -9,6 +9,8 @@ import AppStore from "./views/AppStore.vue";
 import type { Plugin, Theme } from "@halo-dev/api-client";
 import PluginVersionCheckField from "./components/entity-fields/PluginVersionCheckField.vue";
 import ThemeVersionCheckOperationItem from "./components/operation-items/ThemeVersionCheckOperationItem.vue";
+import PluginBindingCheckField from "./components/entity-fields/PluginBindingCheckField.vue";
+import ThemeBindingCheckOperationItem from "./components/operation-items/ThemeBindingCheckOperationItem.vue";
 import ViewAppStoreOperationItem from "./components/operation-items/ViewAppStoreOperationItem.vue";
 import { STORE_APP_ID } from "./constant";
 
@@ -70,6 +72,15 @@ export default definePlugin({
             plugin: plugin,
           },
         },
+        {
+          priority: 42,
+          position: "end",
+          component: markRaw(PluginBindingCheckField),
+          props: {
+            plugin: plugin,
+          },
+          hidden: !!plugin.value.metadata.annotations?.[STORE_APP_ID],
+        },
       ];
     },
     "theme:list-item:operation:create": (theme: Ref<Theme>) => {
@@ -80,6 +91,14 @@ export default definePlugin({
           props: {
             theme,
           },
+        },
+        {
+          priority: 1,
+          component: markRaw(ThemeBindingCheckOperationItem),
+          props: {
+            theme,
+          },
+          hidden: !!theme.value.metadata.annotations?.[STORE_APP_ID],
         },
       ];
     },
