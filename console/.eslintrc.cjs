@@ -14,5 +14,6 @@ module.exports = {
   },
   rules: {
     "vue/no-v-html": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
   },
 };

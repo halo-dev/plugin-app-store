@@ -1,0 +1,37 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: plugin-app-store-integration-setting
+spec:
+  forms:
+    - group: agreements
+      label: 条款与协议
+      formSchema:
+        - $el: ul
+          attrs:
+            class: "formkit-outer as-space-y-1 as-text-sm as-text-gray-600 formkit-disabled:opacity-50 py-4 first:pt-0 last:pb-0 transition-all as-list-decimal as-list-inside"
+          children:
+            - $el: li
+              children:
+                - $el: a
+                  attrs:
+                    href: https://halo.run/terms-of-service
+                    target: _blank
+                    class: "as-text-indigo-600"
+                  children: "《Halo 应用市场服务条款》"
+            - $el: li
+              children:
+                - $el: a
+                  attrs:
+                    href: /console/app-store/terms-of-service
+                    target: _blank
+                    class: "as-text-indigo-600"
+                  children: "《隐私政策》"
+        - $formkit: checkbox
+          label: 我已阅读并同意：《Halo 应用市场服务条款》
+          name: termsOfService
+          value: false
+        - $formkit: checkbox
+          label: 我已阅读并同意：《隐私政策》
+          name: privacyPolicy
+          value: false

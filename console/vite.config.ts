@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from "url";
 import { defineConfig } from "vite";
 import Vue from "@vitejs/plugin-vue";
 import Icons from "unplugin-icons/vite";
+import Markdown from "unplugin-vue-markdown/vite";
 
 const pluginEntryName = "app-store-integration";
 
@@ -11,7 +12,7 @@ export default ({ mode }: { mode: string }) => {
   const outDir = isProduction ? "../src/main/resources/console" : "../build/resources/main/console";
 
   return defineConfig({
-    plugins: [Vue(), Icons({ compiler: "vue3" })],
+    plugins: [Vue({ include: [/\.vue$/, /\.md$/] }), Icons({ compiler: "vue3" }), Markdown()],
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
