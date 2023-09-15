@@ -36,8 +36,8 @@ export default definePlugin({
     {
       parentName: "Root",
       route: {
-        path: "/app-store/terms-of-service",
-        name: "TermsOfService",
+        path: "/app-store/privacy-policy",
+        name: "PrivacyPolicy",
         component: PrivacyPolicy,
         meta: {
           title: "Halo 应用市场隐私政策",

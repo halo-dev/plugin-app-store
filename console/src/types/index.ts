@@ -1,4 +1,4 @@
-import type { Content, Metadata } from "@halo-dev/api-client";
+import type { Metadata } from "@halo-dev/api-client";
 
 export interface Application {
   apiVersion: string;

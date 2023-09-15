@@ -23,7 +23,7 @@ spec:
               children:
                 - $el: a
                   attrs:
-                    href: /console/app-store/terms-of-service
+                    href: /console/app-store/privacy-policy
                     target: _blank
                     class: "as-text-indigo-600"
                   children: "《隐私政策》"
