@@ -14,6 +14,7 @@ import PluginBindingCheckField from "./components/entity-fields/PluginBindingChe
 import ThemeBindingCheckOperationItem from "./components/operation-items/ThemeBindingCheckOperationItem.vue";
 import ViewAppStoreOperationItem from "./components/operation-items/ViewAppStoreOperationItem.vue";
 import { STORE_APP_ID } from "./constant";
+import AccountBindingTab from "./components/plugin-tabs/AccountBindingTab.vue";
 
 export default definePlugin({
   routes: [
@@ -123,6 +124,15 @@ export default definePlugin({
             appId: plugin.value.metadata.annotations?.[STORE_APP_ID],
           },
           hidden: !plugin.value.metadata.annotations?.[STORE_APP_ID],
+        },
+      ];
+    },
+    "plugin:self:tabs:create": () => {
+      return [
+        {
+          id: "token",
+          label: "账号绑定",
+          component: markRaw(AccountBindingTab),
         },
       ];
     },
