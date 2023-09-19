@@ -115,7 +115,7 @@ watch(
           delay: 300,
         }"
       >
-        <a :href="`https://halo.run/store/apps/${app?.application.metadata.name}`" target="_blank">
+        <a :href="`https://www.halo.run/store/apps/${app?.application.metadata.name}`" target="_blank">
           <IconLink />
         </a>
       </span>

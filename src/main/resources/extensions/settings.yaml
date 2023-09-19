@@ -15,7 +15,7 @@ spec:
               children:
                 - $el: a
                   attrs:
-                    href: https://halo.run/terms-of-service
+                    href: https://www.halo.run/terms-of-service
                     target: _blank
                     class: "as-text-indigo-600"
                   children: "《Halo 应用市场服务条款》"
