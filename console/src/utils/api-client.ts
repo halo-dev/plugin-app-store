@@ -3,6 +3,7 @@ import {
   ApiConsoleHaloRunV1alpha1ThemeApi,
   PluginHaloRunV1alpha1PluginApi,
   ThemeHaloRunV1alpha1ThemeApi,
+  V1alpha1SecretApi,
 } from "@halo-dev/api-client";
 import { Toast } from "@halo-dev/components";
 import type { AxiosError, AxiosInstance } from "axios";
@@ -75,6 +76,7 @@ function setupApiClient(axios: AxiosInstance) {
     extension: {
       plugin: new PluginHaloRunV1alpha1PluginApi(undefined, baseURL, axios),
       theme: new ThemeHaloRunV1alpha1ThemeApi(undefined, baseURL, axios),
+      secret: new V1alpha1SecretApi(undefined, baseURL, axios),
     },
     plugin: new ApiConsoleHaloRunV1alpha1PluginApi(undefined, baseURL, axios),
     theme: new ApiConsoleHaloRunV1alpha1ThemeApi(undefined, baseURL, axios),
