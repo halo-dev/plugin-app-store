@@ -5,14 +5,14 @@ metadata:
   labels:
     halo.run/role-template: "true"
   annotations:
-    rbac.authorization.halo.run/module: "Appstore Management"
-    rbac.authorization.halo.run/display-name: "Appstore Management"
+    rbac.authorization.halo.run/module: "AppStore Management"
+    rbac.authorization.halo.run/display-name: "AppStore Management"
     rbac.authorization.halo.run/ui-permissions: |
       ["system:appstore:manage"]
     rbac.authorization.halo.run/dependencies: |
-      [ \"role-template-manage-plugins\", \"role-template-manage-themes\" ]
+      [ "role-template-manage-plugins", "role-template-manage-themes" ]
 rules:
-  - apiGroups: [ "" ]
-    resources: [ "secret" ]
-    resourceNames: [ "halo-run-app-store-pat-secret" ]
-    verbs: [ "create", "update", "get", "delete" ]
+  - apiGroups: [""]
+    resources: ["secret"]
+    resourceNames: ["halo-run-app-store-pat-secret"]
+    verbs: ["create", "update", "get", "delete"]

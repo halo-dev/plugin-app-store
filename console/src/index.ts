@@ -25,7 +25,7 @@ export default definePlugin({
         component: AppStore,
         meta: {
           title: "应用市场",
-          permissions: [],
+          permissions: ["system:appstore:manage"],
           menu: {
             name: "应用市场",
             group: "system",
@@ -43,6 +43,7 @@ export default definePlugin({
         component: PrivacyPolicy,
         meta: {
           title: "Halo 应用市场隐私政策",
+          permissions: ["system:appstore:manage"],
         },
       },
     },
@@ -58,6 +59,7 @@ export default definePlugin({
             type: "PLUGIN",
           },
           priority: 0,
+          permissions: ["system:appstore:manage"],
         },
       ];
     },
@@ -71,6 +73,7 @@ export default definePlugin({
             type: "THEME",
           },
           priority: 11,
+          permissions: ["system:appstore:manage"],
         },
       ];
     },
@@ -83,6 +86,7 @@ export default definePlugin({
           props: {
             plugin: plugin,
           },
+          permissions: ["system:appstore:manage"],
         },
         {
           priority: 42,
@@ -92,6 +96,7 @@ export default definePlugin({
             plugin: plugin,
           },
           hidden: !!plugin.value.metadata.annotations?.[STORE_APP_ID],
+          permissions: ["system:appstore:manage"],
         },
       ];
     },
@@ -103,6 +108,7 @@ export default definePlugin({
           props: {
             theme,
           },
+          permissions: ["system:appstore:manage"],
         },
         {
           priority: 1,
@@ -111,6 +117,7 @@ export default definePlugin({
             theme,
           },
           hidden: !!theme.value.metadata.annotations?.[STORE_APP_ID],
+          permissions: ["system:appstore:manage"],
         },
       ];
     },
@@ -123,6 +130,7 @@ export default definePlugin({
             appId: plugin.value.metadata.annotations?.[STORE_APP_ID],
           },
           hidden: !plugin.value.metadata.annotations?.[STORE_APP_ID],
+          permissions: ["system:appstore:manage"],
         },
       ];
     },
