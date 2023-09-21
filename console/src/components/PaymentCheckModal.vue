@@ -38,6 +38,8 @@ useQuery<ApplicationDetail>({
         showCancel: false,
         onConfirm() {
           queryClient.invalidateQueries({ queryKey: ["store-apps"] });
+          queryClient.invalidateQueries({ queryKey: ["store-app"] });
+          queryClient.invalidateQueries({ queryKey: ["store-app-releases"] });
         },
       });
     }
