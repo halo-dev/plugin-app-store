@@ -12,6 +12,7 @@ import DetailReadme from "./detail/DetailReadme.vue";
 import DetailReleases from "./detail/DetailReleases.vue";
 import AppVersionCheckBar from "./AppVersionCheckBar.vue";
 import AppActionButton from "./AppActionButton.vue";
+import TablerCircleFilled from "~icons/tabler/circle-filled";
 
 const props = withDefaults(
   defineProps<{
@@ -139,10 +140,10 @@ watch(
                   {{ appDetail.application.spec.displayName }}
                 </h1>
                 <span
-                  v-if="false"
-                  class="as-inline-flex as-items-center as-gap-x-1.5 as-rounded-md as-bg-purple-100 as-px-1.5 as-py-0.5 as-text-xs as-font-medium as-text-purple-700"
+                  v-if="app?.bought"
+                  class="as-inline-flex as-items-center as-gap-x-1.5 as-rounded-full as-bg-purple-100 as-px-1.5 as-py-0.5 as-text-xs as-font-medium as-text-purple-700"
                 >
-                  <i class="i-tabler-circle-filled !as-h-2 !as-w-2 as-text-purple-500"></i>
+                  <TablerCircleFilled class="!as-h-2 !as-w-2 as-text-purple-500" />
                   已购买
                 </span>
               </div>

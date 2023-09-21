@@ -20,7 +20,8 @@
     "qs": "^6.11.2",
     "semver": "^7.5.4",
     "vue": "^3.3.4",
-    "vue-i18n": "^9.2.2"
+    "vue-i18n": "^9.2.2",
+    "vue-router": "^4.2.4"
   },
   "devDependencies": {
     "@iconify/json": "^2.2.110",

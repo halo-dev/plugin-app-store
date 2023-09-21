@@ -6,6 +6,7 @@ import { computed } from "vue";
 import { prependDomain } from "@/utils/resource";
 import AppVersionCheckBar from "./AppVersionCheckBar.vue";
 import AppActionButton from "./AppActionButton.vue";
+import TablerCircleFilled from "~icons/tabler/circle-filled";
 
 const props = withDefaults(
   defineProps<{
@@ -77,16 +78,25 @@ const vendor = computed(() => {
             </div>
           </div>
         </div>
-        <span
-          class="as-absolute as-bottom-1.5 as-right-1.5 as-inline-flex as-items-center as-rounded-full as-px-2.5 as-py-0.5 as-text-xs"
-          :class="
-            app.application.spec.type === 'PLUGIN'
-              ? 'as-bg-blue-100 as-text-blue-800'
-              : 'as-bg-gray-100 as-text-gray-800'
-          "
-        >
-          {{ app.application.spec.type === "PLUGIN" ? "插件" : "主题" }}
-        </span>
+        <div class="as-absolute as-bottom-1.5 as-right-1.5 as-flex as-gap-2">
+          <span
+            v-if="app.bought"
+            class="as-inline-flex as-items-center as-gap-x-1.5 as-rounded-full as-bg-purple-100 as-px-1.5 as-py-0.5 as-text-xs as-font-medium as-text-purple-700"
+          >
+            <TablerCircleFilled class="!as-h-2 !as-w-2 as-text-purple-500" />
+            已购买
+          </span>
+          <span
+            class="as-inline-flex as-items-center as-rounded-full as-px-2.5 as-py-0.5 as-text-xs"
+            :class="
+              app.application.spec.type === 'PLUGIN'
+                ? 'as-bg-blue-100 as-text-blue-800'
+                : 'as-bg-gray-100 as-text-gray-800'
+            "
+          >
+            {{ app.application.spec.type === "PLUGIN" ? "插件" : "主题" }}
+          </span>
+        </div>
       </div>
     </div>
     <div
