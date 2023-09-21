@@ -38,7 +38,7 @@ const actions = computed(() => {
       // TODO: 需要判断是否已经购买
       available: app.value?.application.spec.priceConfig?.mode === "ONE_TIME" && !hasInstalled.value,
       onClick: () => {
-        window.open(`https://halo.run/store/apps/${app.value?.application.metadata.name}/buy`);
+        window.open(`https://www.halo.run/store/apps/${app.value?.application.metadata.name}/buy`);
       },
       loading: false,
       disabled: false,

@@ -85,7 +85,7 @@ watch(
     storeApiClient.post(`/apis/api.store.halo.run/tracker`, {
       type: "pageView",
       payload: {
-        hostname: "halo.run",
+        hostname: "www.halo.run",
         screen: `${width}x${height}`,
         language: language,
         title: `应用：${value.application.spec.displayName} - Halo 建站 - 强大易用的开源建站工具`,
@@ -115,7 +115,7 @@ watch(
           delay: 300,
         }"
       >
-        <a :href="`https://halo.run/store/apps/${app?.application.metadata.name}`" target="_blank">
+        <a :href="`https://www.halo.run/store/apps/${app?.application.metadata.name}`" target="_blank">
           <IconLink />
         </a>
       </span>
