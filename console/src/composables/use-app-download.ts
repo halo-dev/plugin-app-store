@@ -312,9 +312,11 @@ function useAppRelease(app: Ref<ApplicationSearchResult | undefined>) {
     const { name: releaseName } = appDetail.latestRelease.release.metadata;
     const { name: assetName } = appDetail.latestRelease.assets[0].metadata;
 
-    return `${
-      import.meta.env.VITE_APP_STORE_BACKEND
-    }/store/apps/${appName}/releases/download/${releaseName}/assets/${assetName}`;
+    const originDownloadUrl = `/apis/api.store.halo.run/v1alpha1/applications/${appName}/releases/${releaseName}/download/${assetName}`;
+
+    const { data } = await storeApiClient.get(originDownloadUrl);
+
+    return data.url;
   }
 
   return { getDownloadUrl };

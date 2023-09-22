@@ -12,7 +12,11 @@ export default ({ mode }: { mode: string }) => {
   const outDir = isProduction ? "../src/main/resources/console" : "../build/resources/main/console";
 
   return defineConfig({
-    plugins: [Vue({ include: [/\.vue$/, /\.md$/] }), Icons({ compiler: "vue3" }), Markdown()],
+    plugins: [
+      Vue({ include: [/\.vue$/, /\.md$/], script: { defineModel: true } }),
+      Icons({ compiler: "vue3" }),
+      Markdown(),
+    ],
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),

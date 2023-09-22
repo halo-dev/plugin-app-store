@@ -190,6 +190,9 @@ export interface Owner {
 }
 
 export interface ApplicationSearchResult {
+  availableForPurchase: boolean;
+  bought: boolean;
+  downloadable: boolean;
   application: Application;
   latestRelease?: ApplicationRelease;
   owner?: Owner;

@@ -13,6 +13,9 @@ import { apiClient } from "@/utils/api-client";
 import { Dialog, Toast } from "@halo-dev/components";
 import type { PluginInstallationErrorResponse, ThemeInstallationErrorResponse } from "@/types/core";
 import type { AxiosError } from "axios";
+import storeApiClient from "@/utils/store-api-client";
+import PaymentCheckModal from "../PaymentCheckModal.vue";
+import { usePaymentCheckModal } from "@/composables/use-payment-check-modal";
 
 const props = withDefaults(
   defineProps<{
@@ -38,6 +41,8 @@ const {
 } = useAppDownload(app);
 
 const { matchedPlugin, matchedTheme, appType, hasInstalled: appHasInstalled } = useAppCompare(app);
+const { paymentCheckModal, paymentCheckModalVisible, onPaymentCheckModalClose, handleOpenCreateOrderPage } =
+  usePaymentCheckModal(app);
 
 const hasInstalled = computed(() => {
   if (appType.value === "PLUGIN") {
@@ -55,10 +60,16 @@ const isSatisfies = computed(() => {
   return semver.satisfies(haloVersion.value, requires, { includePrerelease: true });
 });
 
-function getDownloadUrl(asset: ApplicationReleaseAsset) {
-  return `${import.meta.env.VITE_APP_STORE_BACKEND}/store/apps/${
-    app.value?.application.metadata.name
-  }/releases/download/${props.release.release.metadata.name}/assets/${asset.metadata.name}`;
+async function getDownloadUrl(asset: ApplicationReleaseAsset) {
+  const { name: appName } = app.value?.application.metadata || {};
+  const { name: releaseName } = props.release.release.metadata || {};
+  const { name: assetName } = asset.metadata || {};
+
+  const originDownloadUrl = `/apis/api.store.halo.run/v1alpha1/applications/${appName}/releases/${releaseName}/download/${assetName}`;
+
+  const { data } = await storeApiClient.get(originDownloadUrl);
+
+  return data.url;
 }
 
 const { isLoading: installing, mutate: handleInstall } = useMutation({
@@ -67,7 +78,7 @@ const { isLoading: installing, mutate: handleInstall } = useMutation({
     const { version: releaseVersion } = props.release.release.spec;
     const { version: currentVersion } = matchedPlugin.value?.spec || matchedTheme.value?.spec || {};
 
-    const downloadUrl = getDownloadUrl(asset);
+    const downloadUrl = await getDownloadUrl(asset);
 
     if (appType.value === "PLUGIN") {
       if (appHasInstalled.value) {
@@ -146,7 +157,7 @@ const { isLoading: installing, mutate: handleInstall } = useMutation({
           return;
         }
 
-        const downloadUrl = getDownloadUrl(variables.asset);
+        const downloadUrl = await getDownloadUrl(variables.asset);
 
         if ("pluginName" in error.response.data) {
           await handleForceUpgradePlugin(
@@ -221,16 +232,23 @@ const { isLoading: installing, mutate: handleInstall } = useMutation({
                 {{ prettyBytes(asset.spec.size || 0) }}
               </span>
             </div>
-            <div>
+            <div class="as-select-none">
               <span v-if="hasInstalled" class="as-text-sm as-text-gray-600"> 已安装 </span>
               <span v-else-if="!isSatisfies" class="as-text-sm as-text-gray-600"> 不兼容 </span>
               <span
-                v-else
+                v-else-if="app?.downloadable"
                 class="as-text-sm as-text-blue-600 hover:as-text-blue-500"
                 :class="{ 'as-pointer-events-none': installing }"
                 @click="handleInstall({ asset })"
               >
                 {{ installing ? "安装中" : "安装" }}
+              </span>
+              <span
+                v-else-if="app?.availableForPurchase"
+                class="as-text-sm as-text-blue-600 hover:as-text-blue-500"
+                @click="handleOpenCreateOrderPage"
+              >
+                购买
               </span>
             </div>
           </li>
@@ -238,4 +256,10 @@ const { isLoading: installing, mutate: handleInstall } = useMutation({
       </div>
     </div>
   </div>
+  <PaymentCheckModal
+    v-if="paymentCheckModal"
+    v-model="paymentCheckModalVisible"
+    :app="app"
+    @close="onPaymentCheckModalClose"
+  />
 </template>

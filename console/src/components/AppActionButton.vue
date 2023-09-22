@@ -4,6 +4,8 @@ import { useAppDownload } from "@/composables/use-app-download";
 import type { ApplicationSearchResult } from "@/types";
 import { VButton } from "@halo-dev/components";
 import { computed, toRefs } from "vue";
+import PaymentCheckModal from "./PaymentCheckModal.vue";
+import { usePaymentCheckModal } from "@/composables/use-payment-check-modal";
 
 const props = withDefaults(
   defineProps<{
@@ -20,14 +22,15 @@ const { app } = toRefs(props);
 
 const { installing, handleInstall } = useAppDownload(app);
 const { isSatisfies, hasInstalled } = useAppCompare(app);
+const { paymentCheckModal, paymentCheckModalVisible, onPaymentCheckModalClose, handleOpenCreateOrderPage } =
+  usePaymentCheckModal(app);
 
 const actions = computed(() => {
   return [
     {
       label: installing?.value ? "安装中" : "安装",
       type: "default",
-      available:
-        !hasInstalled.value && isSatisfies.value && app.value?.application.spec.priceConfig?.mode !== "ONE_TIME",
+      available: !hasInstalled.value && isSatisfies.value && app.value?.downloadable,
       onClick: handleInstall,
       loading: installing?.value,
       disabled: false,
@@ -35,11 +38,8 @@ const actions = computed(() => {
     {
       label: `￥${(app.value?.application.spec.priceConfig?.oneTimePrice || 0) / 100}`,
       type: "default",
-      // TODO: 需要判断是否已经购买
-      available: app.value?.application.spec.priceConfig?.mode === "ONE_TIME" && !hasInstalled.value,
-      onClick: () => {
-        window.open(`https://www.halo.run/store/apps/${app.value?.application.metadata.name}/buy`);
-      },
+      available: app.value?.availableForPurchase && !hasInstalled.value,
+      onClick: () => handleOpenCreateOrderPage(),
       loading: false,
       disabled: false,
     },
@@ -78,4 +78,10 @@ const action = computed(() => {
   >
     {{ action.label }}
   </VButton>
+  <PaymentCheckModal
+    v-if="paymentCheckModal"
+    v-model="paymentCheckModalVisible"
+    :app="app"
+    @close="onPaymentCheckModalClose"
+  />
 </template>
