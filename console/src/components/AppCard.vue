@@ -52,7 +52,7 @@ const vendor = computed(() => {
     ]"
   >
     <div class="as-col-span-2">
-      <div class="as-relative as-block">
+      <div class="as-relative as-block as-cursor-pointer" @click="emit('open-detail-modal', app)">
         <div v-if="screenshots?.length !== 0" class="as-aspect-h-9 as-aspect-w-16">
           <img
             class="as-pointer-events-none as-transform-gpu as-rounded-b-none as-rounded-t-md as-object-cover sm:as-rounded-md"
