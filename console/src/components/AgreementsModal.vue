@@ -73,7 +73,7 @@ const { isLoading, mutate } = useMutation({
 </script>
 
 <template>
-  <VModal v-model:visible="visible" mount-to-body title="条款与协议">
+  <VModal v-model:visible="visible" title="条款与协议">
     <p class="as-mb-6 as-text-sm as-text-gray-500">
       为了更好的保护您的权益，请在使用 Halo 应用市场前，仔细阅读并同意以下条款与协议。
     </p>
@@ -81,7 +81,9 @@ const { isLoading, mutate } = useMutation({
       <FormKit v-model="formState.termsOfService" type="checkbox">
         <template #label>
           <span class="formkit-label formkit-invalid:text-red-500 as-block as-text-sm as-font-medium as-text-gray-700">
-            我已阅读并同意：<a href="https://www.halo.run/terms-of-service" target="_blank">《Halo 应用市场服务条款》</a>
+            我已阅读并同意：<a href="https://www.halo.run/terms-of-service" target="_blank">
+              《Halo 应用市场服务条款》
+            </a>
           </span>
         </template>
       </FormKit>
