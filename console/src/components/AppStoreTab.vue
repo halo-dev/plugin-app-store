@@ -19,8 +19,6 @@ import AppDetailModal from "./AppDetailModal.vue";
 import { nextTick } from "vue";
 import type { ApplicationSearchResult, ListResponse } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
-import { useElementVisibility } from "@vueuse/core";
-import { computed } from "vue";
 import AgreementsModal from "./AgreementsModal.vue";
 
 const props = withDefaults(
@@ -44,9 +42,6 @@ const viewTypes = [
 ];
 
 const viewType = useLocalStorage<string>("app-store-tab-list-view", "list");
-
-const tabWrapper = ref<HTMLElement | null>(null);
-const tabWrapperIsVisible = useElementVisibility(tabWrapper);
 
 const keyword = ref("");
 const page = ref(1);
@@ -76,7 +71,6 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
     page.value = data.page;
     size.value = data.size;
   },
-  enabled: computed(() => tabWrapperIsVisible.value),
 });
 
 // detail modal
@@ -130,7 +124,7 @@ watch([selectedPriceMode, selectedSort, keyword], () => {
 </script>
 
 <template>
-  <div ref="tabWrapper">
+  <div>
     <div class="as-block as-w-full as-rounded as-bg-gray-50 as-px-3 as-py-2">
       <div class="as-relative as-flex as-flex-col as-items-start sm:as-flex-row sm:as-items-center">
         <div class="as-flex as-w-full as-flex-1 as-items-center sm:as-w-auto">
@@ -243,5 +237,5 @@ watch([selectedPriceMode, selectedSort, keyword], () => {
     </template>
   </AppDetailModal>
 
-  <AgreementsModal v-if="data" />
+  <AgreementsModal />
 </template>
