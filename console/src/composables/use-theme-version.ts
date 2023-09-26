@@ -7,6 +7,7 @@ import semver from "semver";
 import { useHaloVersion } from "./use-halo-version";
 import { STORE_APP_ID } from "@/constant";
 import { useFetchInstalledThemes } from "./use-theme";
+import { satisfiesRequires } from "@/utils/version";
 
 export function useThemeVersion(theme: Ref<Theme | undefined>) {
   const { haloVersion } = useHaloVersion();
@@ -62,12 +63,7 @@ export function useThemeVersion(theme: Ref<Theme | undefined>) {
       return false;
     }
     const { requires } = matchedApp.value.latestRelease.spec;
-
-    if (!haloVersion.value || !requires) {
-      return false;
-    }
-
-    return semver.satisfies(haloVersion.value, requires, { includePrerelease: true });
+    return satisfiesRequires(haloVersion.value, requires);
   });
 
   return { hasUpdate, isSatisfies, matchedApp };
