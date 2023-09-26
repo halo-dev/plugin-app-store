@@ -11,8 +11,12 @@ const VERSION_REGEX = /^\d+\.\d+\.\d+$/g;
  * @returns A boolean indicating whether the version satisfies the required range.
  */
 export function satisfiesRequires(version?: string, requires?: string): boolean {
-  if (!version || !requires) {
-    return false;
+  if (!version) {
+    version = "0.0.0";
+  }
+
+  if (!requires) {
+    return true;
   }
 
   requires = requires.trim();
@@ -21,5 +25,5 @@ export function satisfiesRequires(version?: string, requires?: string): boolean 
     requires = `>=${requires}`;
   }
 
-  return semver.satisfies(version, requires, { includePrerelease: true });
+  return version === "0.0.0" || semver.satisfies(version, requires, { includePrerelease: true });
 }
