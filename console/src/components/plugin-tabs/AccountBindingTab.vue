@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Toast, VAlert, VButton } from "@halo-dev/components";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { apiClient } from "@/utils/api-client";
 import type { Secret } from "@halo-dev/api-client";
 import { APP_STORE_PAT_CACHE_KEY, APP_STORE_PAT_SECRET_NAME } from "@/constant";
