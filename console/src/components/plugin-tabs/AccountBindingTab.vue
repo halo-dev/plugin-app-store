@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Toast, VAlert, VButton } from "@halo-dev/components";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { apiClient } from "@/utils/api-client";
 import type { Secret } from "@halo-dev/api-client";
 import { APP_STORE_PAT_CACHE_KEY, APP_STORE_PAT_SECRET_NAME } from "@/constant";
@@ -67,6 +67,8 @@ const { mutate, isLoading } = useMutation({
     Toast.success("保存成功");
   },
 });
+
+const haloPatAddress = `${import.meta.env.VITE_APP_STORE_BACKEND}/console/users/-/?tab=pat`;
 </script>
 
 <template>
@@ -76,12 +78,8 @@ const { mutate, isLoading } = useMutation({
         <VAlert type="info" title="提示" class="sm:max-w-lg" :closable="false">
           <template #description>
             为了能够与 Halo 官方应用市场建立绑定关系以支持下载和更新付费应用，需要先访问
-            <a
-              class="as-text-gray-900 hover:as-text-gray-600"
-              target="_blank"
-              href="https://halo.run/console/users/-/detail"
-            >
-              https://halo.run/console/users/-/detail
+            <a class="as-text-gray-900 hover:as-text-gray-600" target="_blank" :href="haloPatAddress">
+              {{ haloPatAddress }}
             </a>
             创建个人令牌，然后设置到下方的输入框中。
           </template>
