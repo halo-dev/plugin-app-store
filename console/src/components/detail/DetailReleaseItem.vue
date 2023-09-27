@@ -16,6 +16,7 @@ import type { AxiosError } from "axios";
 import storeApiClient from "@/utils/store-api-client";
 import PaymentCheckModal from "../PaymentCheckModal.vue";
 import { usePaymentCheckModal } from "@/composables/use-payment-check-modal";
+import { satisfiesRequires } from "@/utils/version";
 
 const props = withDefaults(
   defineProps<{
@@ -56,8 +57,7 @@ const hasInstalled = computed(() => {
 
 const isSatisfies = computed(() => {
   const { requires } = props.release.release.spec;
-  if (!haloVersion.value || !requires) return false;
-  return semver.satisfies(haloVersion.value, requires, { includePrerelease: true });
+  return satisfiesRequires(haloVersion.value, requires);
 });
 
 async function getDownloadUrl(asset: ApplicationReleaseAsset) {

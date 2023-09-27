@@ -7,6 +7,7 @@ import semver from "semver";
 import { useHaloVersion } from "./use-halo-version";
 import { STORE_APP_ID } from "@/constant";
 import { useFetchInstalledPlugins } from "./use-plugin";
+import { satisfiesRequires } from "@/utils/version";
 
 export function usePluginVersion(plugin: Ref<Plugin | undefined>) {
   const { haloVersion } = useHaloVersion();
@@ -62,12 +63,7 @@ export function usePluginVersion(plugin: Ref<Plugin | undefined>) {
       return false;
     }
     const { requires } = matchedApp.value.latestRelease.spec;
-
-    if (!haloVersion.value || !requires) {
-      return false;
-    }
-
-    return semver.satisfies(haloVersion.value, requires, { includePrerelease: true });
+    return satisfiesRequires(haloVersion.value, requires);
   });
 
   return { hasUpdate, isSatisfies, matchedApp };

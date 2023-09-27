@@ -5,6 +5,7 @@ import semver from "semver";
 import { useHaloVersion } from "./use-halo-version";
 import { useFetchInstalledPlugins } from "./use-plugin";
 import { useFetchInstalledThemes } from "./use-theme";
+import { satisfiesRequires } from "@/utils/version";
 
 export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
   const { haloVersion } = useHaloVersion();
@@ -64,12 +65,8 @@ export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
     if (!app.value?.latestRelease) {
       return false;
     }
-
     const { requires } = app.value.latestRelease.spec;
-
-    if (!haloVersion.value || !requires) return false;
-
-    return semver.satisfies(haloVersion.value, requires, { includePrerelease: true });
+    return satisfiesRequires(haloVersion.value, requires);
   });
 
   return {
