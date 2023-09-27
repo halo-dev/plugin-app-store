@@ -7,10 +7,19 @@ import { computed, toRefs } from "vue";
 import PaymentCheckModal from "./PaymentCheckModal.vue";
 import { usePaymentCheckModal } from "@/composables/use-payment-check-modal";
 
+interface Action {
+  label: string;
+  type: string | any;
+  available?: boolean;
+  onClick?: () => void;
+  loading: boolean;
+  disabled: boolean;
+}
+
 const props = withDefaults(
   defineProps<{
     app?: ApplicationSearchResult;
-    size?: string;
+    size?: string | any;
   }>(),
   {
     app: undefined,
@@ -25,7 +34,7 @@ const { isSatisfies, hasInstalled } = useAppCompare(app);
 const { paymentCheckModal, paymentCheckModalVisible, onPaymentCheckModalClose, handleOpenCreateOrderPage } =
   usePaymentCheckModal(app);
 
-const actions = computed(() => {
+const actions = computed((): Action[] => {
   return [
     {
       label: installing?.value ? "安装中" : "安装",

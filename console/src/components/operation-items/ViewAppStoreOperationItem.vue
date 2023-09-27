@@ -22,6 +22,9 @@ async function handleOpenDetailModal() {
   );
 
   app.value = {
+    downloadable: data.downloadable || true,
+    availableForPurchase: data.availableForPurchase || false,
+    bought: data.bought || false,
     application: data.application,
     latestRelease: data.latestRelease?.release,
     owner: data.owner,

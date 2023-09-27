@@ -21,3 +21,9 @@ declare module "*.md" {
   const Component: ComponentOptions;
   export default Component;
 }
+
+declare module "vue" {
+  interface ComponentCustomProperties {
+    $formkit: any;
+  }
+}
