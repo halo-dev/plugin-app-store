@@ -35,7 +35,7 @@ export function useAppCompare(app: Ref<ApplicationSearchResult | undefined>) {
   });
 
   const hasInstalled = computed(() => {
-    return matchedPlugin.value || matchedTheme.value;
+    return !!matchedPlugin.value || !!matchedTheme.value;
   });
 
   const hasUpdate = computed(() => {
