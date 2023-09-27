@@ -25,5 +25,5 @@ export function satisfiesRequires(version?: string, requires?: string): boolean 
     requires = `>=${requires}`;
   }
 
-  return version === "0.0.0" || semver.satisfies(version, requires, { includePrerelease: true });
+  return semver.satisfies(version, requires, { includePrerelease: true });
 }
