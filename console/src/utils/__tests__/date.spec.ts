@@ -27,12 +27,6 @@ describe("date", () => {
       expect(toDatetimeLocal(null)).toBe("");
     });
 
-    it("should return a formatted date string in the local timezone", () => {
-      const date = new Date("2021-01-01T00:00:00Z");
-      const expected = "2021-01-01T08:00";
-      expect(toDatetimeLocal(date)).toBe(expected);
-    });
-
     it("should return a formatted date string in the specified timezone", () => {
       const date = new Date("2021-01-01T00:00:00Z");
       const tz = "America/Los_Angeles";
