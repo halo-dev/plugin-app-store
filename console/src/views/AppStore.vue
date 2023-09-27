@@ -26,6 +26,7 @@ import { useLocalStorage } from "@vueuse/core";
 import { computed, nextTick, watch } from "vue";
 import { ref } from "vue";
 import RiApps2Line from "~icons/ri/apps-2-line";
+import { useRouteQuery } from "@vueuse/router";
 
 const Types = [
   {
@@ -70,22 +71,32 @@ const viewTypes = [
 
 const viewType = useLocalStorage<string>("app-store-list-view", "grid");
 
-const keyword = ref("");
-const page = ref(1);
-const size = ref(20);
-const selectedSort = ref("latestReleaseTimestamp,desc");
-const selectedPriceMode = ref();
-const selectedType = ref();
-const onlyQueryInstalled = ref(false);
+const keyword = useRouteQuery<string>("keyword", "");
+const page = useRouteQuery<number>("page", 1, { transform: Number });
+const size = useRouteQuery<number>("size", 20, { transform: Number });
+const selectedSort = useRouteQuery<string | undefined>("sort", "latestReleaseTimestamp,desc");
+const selectedPriceMode = useRouteQuery("price-mode");
+const selectedType = useRouteQuery<string | undefined>("type");
+const onlyQueryInstalled = useRouteQuery<string>("installed", "false");
+const onlyQueryInstalledAsBoolean = computed(() => onlyQueryInstalled.value === "true");
 
-const { installedPlugins } = useFetchInstalledPlugins(onlyQueryInstalled);
-const { installedThemes } = useFetchInstalledThemes(onlyQueryInstalled);
+const { installedPlugins } = useFetchInstalledPlugins(onlyQueryInstalledAsBoolean);
+const { installedThemes } = useFetchInstalledThemes(onlyQueryInstalledAsBoolean);
 
 const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<ApplicationSearchResult>>({
-  queryKey: ["store-apps", keyword, selectedSort, page, size, selectedPriceMode, selectedType, onlyQueryInstalled],
+  queryKey: [
+    "store-apps",
+    keyword,
+    selectedSort,
+    page,
+    size,
+    selectedPriceMode,
+    selectedType,
+    onlyQueryInstalledAsBoolean,
+  ],
   queryFn: async () => {
     const appIds: string[] = [];
-    if (onlyQueryInstalled.value) {
+    if (onlyQueryInstalledAsBoolean.value) {
       if (installedPlugins.value?.length) {
         appIds.push(
           ...((installedPlugins.value?.map((plugin) => plugin.metadata.annotations?.[STORE_APP_ID]) || []).filter(
@@ -122,7 +133,7 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
     size.value = data.size;
   },
   enabled: computed(() => {
-    if (onlyQueryInstalled.value) {
+    if (onlyQueryInstalledAsBoolean.value) {
       return !!installedPlugins.value && !!installedThemes.value;
     }
     return true;
@@ -203,6 +214,7 @@ watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keywor
                       id="onlyQueryInstalled"
                       v-model="onlyQueryInstalled"
                       type="checkbox"
+                      value="true"
                       class="as-h-3.5 as-w-3.5 as-rounded as-border-gray-300 as-text-indigo-600 focus:as-ring-indigo-600"
                     />
                   </div>
@@ -210,7 +222,7 @@ watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keywor
                     <label
                       for="onlyQueryInstalled"
                       class="as-text-sm as-text-gray-700 hover:as-text-black"
-                      :class="{ 'as-font-semibold as-text-gray-700': onlyQueryInstalled }"
+                      :class="{ 'as-font-semibold as-text-gray-700': onlyQueryInstalledAsBoolean }"
                     >
                       已安装
                     </label>

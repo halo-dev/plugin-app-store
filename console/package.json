@@ -13,6 +13,7 @@
     "@halo-dev/console-shared": "^2.9.0",
     "@tanstack/vue-query": "^4.34.4",
     "@vueuse/core": "^10.4.1",
+    "@vueuse/router": "^10.4.1",
     "axios": "^1.5.0",
     "dayjs": "^1.11.9",
     "github-markdown-css": "^5.2.0",
