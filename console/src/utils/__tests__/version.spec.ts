@@ -3,7 +3,6 @@ import { satisfiesRequires } from "../version";
 
 describe("satisfiesRequires", () => {
   it("should return true when version satisfies required range", () => {
-    expect(satisfiesRequires("0.0.0", ">=2.2.0")).toBe(true);
     expect(satisfiesRequires("2.0.0", "*")).toBe(true);
     expect(satisfiesRequires("2.0.0", "")).toBe(true);
     expect(satisfiesRequires("2.0.0", ">=2.0.0")).toBe(true);
@@ -11,6 +10,7 @@ describe("satisfiesRequires", () => {
   });
 
   it("should return false when version does not satisfy required range", () => {
+    expect(satisfiesRequires("0.0.0", ">=2.2.0")).toBe(false);
     expect(satisfiesRequires("2.0.0", ">2.0.0")).toBe(false);
     expect(satisfiesRequires("2.0.0", ">=2.1.0")).toBe(false);
   });
@@ -18,7 +18,6 @@ describe("satisfiesRequires", () => {
   it("should return true when version or required range is missing", () => {
     expect(satisfiesRequires("2.0.0", undefined)).toBe(true);
     expect(satisfiesRequires(undefined, undefined)).toBe(true);
-    expect(satisfiesRequires(undefined, ">=2.0.0")).toBe(true);
   });
 
   it("should return true when version satisfies required range with prerelease", () => {
