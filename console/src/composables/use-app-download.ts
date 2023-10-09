@@ -173,6 +173,7 @@ export function useAppDownload(app: Ref<ApplicationSearchResult | undefined>) {
         });
 
         if (await checkPluginUpgradeStatus(matchedPlugin.value, app.value?.latestRelease?.spec.version)) {
+          await handleBindingPluginAppId({ plugin: upgradedPlugin });
           return upgradedPlugin;
         }
         return;
@@ -190,6 +191,7 @@ export function useAppDownload(app: Ref<ApplicationSearchResult | undefined>) {
         });
 
         if (await checkThemeUpgradeStatus(matchedTheme.value, app.value?.latestRelease?.spec.version)) {
+          await handleBindingThemeAppId({ theme: upgradedTheme });
           return upgradedTheme;
         }
         return;
