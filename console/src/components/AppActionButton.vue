@@ -38,7 +38,7 @@ const actions = computed((): Action[] => {
   return [
     {
       label: installing?.value ? "安装中" : "安装",
-      type: "default",
+      type: "primary",
       available: !hasInstalled.value && isSatisfies.value && app.value?.downloadable,
       onClick: handleInstall,
       loading: installing?.value,
@@ -46,7 +46,7 @@ const actions = computed((): Action[] => {
     },
     {
       label: `￥${(app.value?.application.spec.priceConfig?.oneTimePrice || 0) / 100}`,
-      type: "default",
+      type: "primary",
       available: app.value?.availableForPurchase && !hasInstalled.value,
       onClick: () => handleOpenCreateOrderPage(),
       loading: false,

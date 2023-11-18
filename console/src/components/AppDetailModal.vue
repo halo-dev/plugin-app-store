@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconLink, VLoading, VModal, VSpace, VTabItem, VTabs } from "@halo-dev/components";
+import { IconLink, VAvatar, VButton, VLoading, VModal, VSpace, VTabItem, VTabs } from "@halo-dev/components";
 import { useQuery } from "@tanstack/vue-query";
 import { ref, watch } from "vue";
 import { computed } from "vue";
@@ -13,6 +13,8 @@ import DetailReleases from "./detail/DetailReleases.vue";
 import AppVersionCheckBar from "./AppVersionCheckBar.vue";
 import AppActionButton from "./AppActionButton.vue";
 import TablerCircleFilled from "~icons/tabler/circle-filled";
+import TablerGraph from "~icons/tabler/graph";
+import TablerDownload from "~icons/tabler/download";
 
 const props = withDefaults(
   defineProps<{
@@ -106,6 +108,7 @@ watch(
     :layer-closable="true"
     height="calc(100vh - 20px)"
     :mount-to-body="true"
+    :body-class="['!as-p-0']"
     @update:visible="onVisibleChange"
   >
     <template #actions>
@@ -123,36 +126,53 @@ watch(
     </template>
     <div>
       <VLoading v-if="isLoading || isFetching" />
-      <div v-else-if="appDetail" class="as-flex as-flex-col-reverse as-gap-5 sm:as-grid sm:as-grid-cols-8">
-        <DetailSidebar :app="appDetail" />
-        <div class="as-col-span-5 lg:as-col-span-6">
-          <div class="as-flex as-flex-wrap as-items-center as-gap-4">
-            <div v-if="appDetail.application.spec.logo" class="as-flex as-justify-center">
-              <img
-                class="as-h-16 as-w-16 as-rounded"
-                :src="prependDomain(appDetail.application.spec.logo)"
-                :alt="appDetail.application.spec.displayName"
-              />
+      <div v-else-if="appDetail">
+        <div class="as-flex as-flex-wrap as-items-start as-gap-8 as-bg-gray-100 as-px-4 as-py-8">
+          <div v-if="appDetail.application.spec.logo" class="as-flex as-justify-center">
+            <VAvatar
+              width="5rem"
+              height="5rem"
+              :src="prependDomain(appDetail.application.spec.logo)"
+              :alt="appDetail.application.spec.displayName"
+            />
+          </div>
+          <div class="as-flex as-flex-col as-gap-3">
+            <div class="as-flex as-flex-wrap as-items-center as-gap-3">
+              <h1 class="as-text-xl as-font-semibold as-text-gray-900">
+                {{ appDetail.application.spec.displayName }}
+              </h1>
+              <span
+                v-if="app?.bought"
+                class="as-inline-flex as-items-center as-gap-x-1.5 as-rounded-full as-bg-purple-100 as-px-1.5 as-py-0.5 as-text-xs as-font-medium as-text-purple-700"
+              >
+                <TablerCircleFilled class="!as-h-2 !as-w-2 as-text-purple-500" />
+                已购买
+              </span>
             </div>
-            <div>
-              <div class="as-flex as-flex-wrap as-items-center as-gap-3">
-                <h1 class="as-text-xl as-font-medium as-text-gray-900">
-                  {{ appDetail.application.spec.displayName }}
-                </h1>
-                <span
-                  v-if="app?.bought"
-                  class="as-inline-flex as-items-center as-gap-x-1.5 as-rounded-full as-bg-purple-100 as-px-1.5 as-py-0.5 as-text-xs as-font-medium as-text-purple-700"
-                >
-                  <TablerCircleFilled class="!as-h-2 !as-w-2 as-text-purple-500" />
-                  已购买
-                </span>
+            <div class="as-flex as-items-center as-space-x-4">
+              <div class="as-inline-flex as-items-center as-space-x-1.5" title="浏览量">
+                <TablerGraph class="as-text-green-600" />
+                <span class="as-text-xs as-tabular-nums">{{ appDetail.views || 0 }}</span>
               </div>
-              <p v-if="appDetail.application.spec.description" class="as-mt-2 as-text-sm as-text-gray-600">
-                {{ appDetail.application.spec.description }}
-              </p>
+              <div class="as-inline-flex as-items-center as-space-x-1.5" title="下载量">
+                <TablerDownload class="as-text-indigo-600" />
+                <span class="as-text-xs as-tabular-nums">{{ appDetail.downloads || 0 }}</span>
+              </div>
+            </div>
+            <p v-if="appDetail.application.spec.description" class="as-text-sm as-text-gray-600">
+              {{ appDetail.application.spec.description }}
+            </p>
+            <div>
+              <VSpace>
+                <AppActionButton :app="app" />
+                <AppVersionCheckBar :app="app" />
+              </VSpace>
             </div>
           </div>
-          <div class="as-mt-5">
+        </div>
+        <div class="as-flex as-flex-col-reverse as-gap-5 as-px-4 as-py-3 sm:as-grid sm:as-grid-cols-8">
+          <DetailSidebar :app="appDetail" />
+          <div class="as-col-span-5 lg:as-col-span-6">
             <div id="app-detail-tabs">
               <VTabs v-model:active-id="activeId">
                 <VTabItem id="readme" label="简介">
@@ -168,10 +188,7 @@ watch(
       </div>
     </div>
     <template #footer>
-      <VSpace>
-        <AppActionButton :app="app" />
-        <AppVersionCheckBar :app="app" />
-      </VSpace>
+      <VButton @click="onVisibleChange(false)">关闭</VButton>
     </template>
   </VModal>
 </template>
