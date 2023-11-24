@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import type { ApplicationDetail } from "@/types";
 import { relativeTimeTo } from "@/utils/date";
-import TablerGraph from "~icons/tabler/graph";
-import TablerDownload from "~icons/tabler/download";
 withDefaults(
   defineProps<{
     app?: ApplicationDetail;
@@ -14,7 +12,7 @@ withDefaults(
 </script>
 
 <template>
-  <aside v-if="app" class="as-col-span-3 sm:as-sticky sm:as-top-0 sm:as-h-screen lg:as-col-span-2">
+  <aside v-if="app" class="as-col-span-3 sm:as-sticky sm:as-top-3 sm:as-h-screen lg:as-col-span-2">
     <ul role="list" class="as-divide-y as-divide-gray-200">
       <li class="as-flex as-pb-4">
         <div class="as-space-y-2">
@@ -93,37 +91,6 @@ withDefaults(
                 </a>
               </li>
             </ul>
-          </div>
-        </div>
-      </li>
-      <li class="as-flex as-py-4">
-        <div class="as-w-full as-space-y-2">
-          <h2 class="as-text-base as-font-medium as-text-gray-900">数据</h2>
-          <div>
-            <div class="as-grid as-grid-cols-2 as-rounded-lg as-border">
-              <div class="as-flex as-border-r as-p-3">
-                <div class="as-flex as-flex-col as-gap-1">
-                  <div class="as-inline-flex as-items-center as-gap-1">
-                    <TablerGraph class="as-text-green-600" />
-                    <span class="as-text-xs as-text-gray-500">浏览</span>
-                  </div>
-                  <span class="as-font-semibold as-tabular-nums">
-                    {{ app.views }}
-                  </span>
-                </div>
-              </div>
-              <div class="as-flex as-p-3">
-                <div class="as-flex as-flex-col as-gap-1">
-                  <div class="as-inline-flex as-items-center as-gap-1">
-                    <TablerDownload class="as-text-indigo-600" />
-                    <span class="as-text-xs as-text-gray-500">下载</span>
-                  </div>
-                  <span class="as-font-semibold as-tabular-nums">
-                    {{ app.downloads || 0 }}
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </li>
