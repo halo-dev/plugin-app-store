@@ -68,7 +68,7 @@ const { mutate, isLoading } = useMutation({
   },
 });
 
-const haloPatAddress = `${import.meta.env.VITE_APP_STORE_BACKEND}/console/users/-/?tab=pat`;
+const haloPatAddress = `${import.meta.env.VITE_APP_STORE_BACKEND}/uc/profile?tab=pat`;
 </script>
 
 <template>
