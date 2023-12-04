@@ -13,6 +13,6 @@ metadata:
       [ "role-template-manage-plugins", "role-template-manage-themes" ]
 rules:
   - apiGroups: [""]
-    resources: ["secret"]
+    resources: ["secrets"]
     resourceNames: ["halo-run-app-store-pat-secret"]
     verbs: ["create", "update", "get", "delete"]
