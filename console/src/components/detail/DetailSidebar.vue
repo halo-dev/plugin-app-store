@@ -1,7 +1,11 @@
 <script lang="ts" setup>
-import type { ApplicationDetail } from "@/types";
+import type { ApplicationDetail, ApplicationTag, ListResponse } from "@/types";
 import { relativeTimeTo } from "@/utils/date";
-withDefaults(
+import storeApiClient from "@/utils/store-api-client";
+import { useQuery } from "@tanstack/vue-query";
+import { computed } from "vue";
+import AppTag from "../AppTag.vue";
+const props = withDefaults(
   defineProps<{
     app?: ApplicationDetail;
   }>(),
@@ -9,6 +13,32 @@ withDefaults(
     app: undefined,
   }
 );
+
+const { data: tags, isLoading } = useQuery<ApplicationTag[]>({
+  queryKey: ["app-tags"],
+  queryFn: async () => {
+    const { data } = await storeApiClient.get<ListResponse<ApplicationTag>>("/apis/store.halo.run/v1alpha1/tags");
+
+    if (data?.items.length) {
+      // sort by privileged<boolean>
+      return data.items.sort((a: ApplicationTag, b: ApplicationTag) => {
+        return +b.spec.privileged - +a.spec.privileged;
+      });
+    }
+
+    return [];
+  },
+});
+
+const currentTags = computed(() => {
+  if (!props.app || !tags.value?.length) {
+    return [];
+  }
+
+  return tags.value.filter((tag) => {
+    return props.app?.application.spec.tags?.includes(tag.metadata.name);
+  });
+});
 </script>
 
 <template>
@@ -91,6 +121,17 @@ withDefaults(
                 </a>
               </li>
             </ul>
+          </div>
+        </div>
+      </li>
+      <li v-if="currentTags.length" class="as-flex as-py-4">
+        <div class="as-space-y-2">
+          <h2 class="as-text-base as-font-medium as-text-gray-900">标签</h2>
+          <div class="as-flex as-flex-wrap as-gap-2">
+            <span v-if="isLoading" class="as-text-sm as-text-gray-600">加载中...</span>
+            <AppTag v-for="tag in currentTags" v-else :key="tag.metadata.name">
+              {{ tag.spec.displayName }}
+            </AppTag>
           </div>
         </div>
       </li>
