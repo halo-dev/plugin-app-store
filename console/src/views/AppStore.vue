@@ -78,7 +78,7 @@ const size = useRouteQuery<number>("size", 20, { transform: Number });
 const selectedSort = useRouteQuery<string | undefined>("sort", "latestReleaseTimestamp,desc");
 const selectedPriceMode = useRouteQuery("price-mode");
 const selectedType = useRouteQuery<string | undefined>("type");
-const selectedTags = useRouteQuery<string[] | undefined>("tags", []);
+const selectedTag = useRouteQuery<string | undefined>("tag", "");
 const onlyQueryInstalled = useRouteQuery<string>("installed", "false");
 const onlyQueryInstalledAsBoolean = computed(() => onlyQueryInstalled.value === "true");
 
@@ -101,12 +101,13 @@ const { data: tags } = useQuery<ApplicationTag[]>({
   },
 });
 
-function handleSetTag(tag: string) {
-  if (selectedTags.value?.includes(tag)) {
-    selectedTags.value = selectedTags.value.filter((item) => item !== tag);
-  } else {
-    selectedTags.value?.push(tag);
+function handleSetTag(tagName: string) {
+  // if tag is selected, clear it
+  if (selectedTag.value === tagName) {
+    selectedTag.value = "";
+    return;
   }
+  selectedTag.value = tagName;
 }
 
 const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<ApplicationSearchResult>>({
@@ -118,7 +119,7 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
     size,
     selectedPriceMode,
     selectedType,
-    selectedTags,
+    selectedTag,
     onlyQueryInstalledAsBoolean,
   ],
   queryFn: async () => {
@@ -150,7 +151,7 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
           priceMode: selectedPriceMode.value,
           type: selectedType.value,
           names: appIds,
-          tags: selectedTags.value,
+          tags: selectedTag.value || undefined,
         },
       }
     );
@@ -214,7 +215,7 @@ const handleSelectNext = async () => {
 };
 
 // page refresh
-watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keyword, selectedTags], () => {
+watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keyword, selectedTag], () => {
   page.value = 1;
 });
 </script>
@@ -361,11 +362,11 @@ watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keywor
                 <div>
                   <fieldset className="as-mt-4">
                     <div className="as-flex as-flex-wrap as-gap-2">
-                      <AppTag :selected="!selectedTags?.length" @click="selectedTags = []"> 全部 </AppTag>
+                      <AppTag :selected="!selectedTag" @click="handleSetTag('')"> 全部 </AppTag>
                       <AppTag
                         v-for="tag in tags"
                         :key="tag.metadata.name"
-                        :selected="selectedTags?.includes(tag.metadata.name)"
+                        :selected="tag.metadata.name === selectedTag"
                         @click="handleSetTag(tag.metadata.name)"
                       >
                         {{ tag.spec.displayName }}
