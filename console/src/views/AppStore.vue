@@ -5,7 +5,7 @@ import AppDetailModal from "@/components/AppDetailModal.vue";
 import { useFetchInstalledPlugins } from "@/composables/use-plugin";
 import { useFetchInstalledThemes } from "@/composables/use-theme";
 import { STORE_APP_ID } from "@/constant";
-import type { ApplicationSearchResult, ListResponse } from "@/types";
+import type { ApplicationSearchResult, ApplicationTag, ListResponse } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
 import {
   IconArrowLeft,
@@ -27,6 +27,7 @@ import { computed, nextTick, watch } from "vue";
 import { ref } from "vue";
 import RiApps2Line from "~icons/ri/apps-2-line";
 import { useRouteQuery } from "@vueuse/router";
+import AppTag from "@/components/AppTag.vue";
 
 const Types = [
   {
@@ -77,11 +78,37 @@ const size = useRouteQuery<number>("size", 20, { transform: Number });
 const selectedSort = useRouteQuery<string | undefined>("sort", "latestReleaseTimestamp,desc");
 const selectedPriceMode = useRouteQuery("price-mode");
 const selectedType = useRouteQuery<string | undefined>("type");
+const selectedTag = useRouteQuery<string | undefined>("tag", "");
 const onlyQueryInstalled = useRouteQuery<string>("installed", "false");
 const onlyQueryInstalledAsBoolean = computed(() => onlyQueryInstalled.value === "true");
 
 const { installedPlugins } = useFetchInstalledPlugins(onlyQueryInstalledAsBoolean);
 const { installedThemes } = useFetchInstalledThemes(onlyQueryInstalledAsBoolean);
+
+const { data: tags } = useQuery<ApplicationTag[]>({
+  queryKey: ["app-tags"],
+  queryFn: async () => {
+    const { data } = await storeApiClient.get<ListResponse<ApplicationTag>>("/apis/store.halo.run/v1alpha1/tags");
+
+    if (data?.items.length) {
+      // sort by privileged<boolean>
+      return data.items.sort((a: ApplicationTag, b: ApplicationTag) => {
+        return +b.spec.privileged - +a.spec.privileged;
+      });
+    }
+
+    return [];
+  },
+});
+
+function handleSetTag(tagName: string) {
+  // if tag is selected, clear it
+  if (selectedTag.value === tagName) {
+    selectedTag.value = "";
+    return;
+  }
+  selectedTag.value = tagName;
+}
 
 const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<ApplicationSearchResult>>({
   queryKey: [
@@ -92,6 +119,7 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
     size,
     selectedPriceMode,
     selectedType,
+    selectedTag,
     onlyQueryInstalledAsBoolean,
   ],
   queryFn: async () => {
@@ -123,6 +151,7 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
           priceMode: selectedPriceMode.value,
           type: selectedType.value,
           names: appIds,
+          tags: selectedTag.value || undefined,
         },
       }
     );
@@ -186,7 +215,7 @@ const handleSelectNext = async () => {
 };
 
 // page refresh
-watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keyword], () => {
+watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keyword, selectedTag], () => {
   page.value = 1;
 });
 </script>
@@ -322,6 +351,26 @@ watch([selectedPriceMode, selectedType, selectedSort, onlyQueryInstalled, keywor
                           {{ priceMode.label }}
                         </label>
                       </div>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+            </li>
+            <li className="as-flex as-py-4">
+              <div className="as-space-y-2">
+                <h2 className="as-text-base as-font-medium as-text-gray-900">标签</h2>
+                <div>
+                  <fieldset className="as-mt-4">
+                    <div className="as-flex as-flex-wrap as-gap-2">
+                      <AppTag :selected="!selectedTag" @click="handleSetTag('')"> 全部 </AppTag>
+                      <AppTag
+                        v-for="tag in tags"
+                        :key="tag.metadata.name"
+                        :selected="tag.metadata.name === selectedTag"
+                        @click="handleSetTag(tag.metadata.name)"
+                      >
+                        {{ tag.spec.displayName }}
+                      </AppTag>
                     </div>
                   </fieldset>
                 </div>

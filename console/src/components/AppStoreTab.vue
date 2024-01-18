@@ -17,7 +17,7 @@ import AppCard from "./AppCard.vue";
 import { useLocalStorage } from "@vueuse/core";
 import AppDetailModal from "./AppDetailModal.vue";
 import { nextTick } from "vue";
-import type { ApplicationSearchResult, ListResponse } from "@/types";
+import type { ApplicationSearchResult, ApplicationTag, ListResponse } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
 import AgreementsModal from "./AgreementsModal.vue";
 
@@ -48,9 +48,26 @@ const page = ref(1);
 const size = ref(20);
 const selectedSort = ref("latestReleaseTimestamp,desc");
 const selectedPriceMode = ref();
+const selectedTag = ref();
+
+const { data: tags } = useQuery<ApplicationTag[]>({
+  queryKey: ["app-tags"],
+  queryFn: async () => {
+    const { data } = await storeApiClient.get<ListResponse<ApplicationTag>>("/apis/store.halo.run/v1alpha1/tags");
+
+    if (data?.items.length) {
+      // sort by privileged<boolean>
+      return data.items.sort((a: ApplicationTag, b: ApplicationTag) => {
+        return +b.spec.privileged - +a.spec.privileged;
+      });
+    }
+
+    return [];
+  },
+});
 
 const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<ApplicationSearchResult>>({
-  queryKey: ["store-apps", keyword, selectedSort, page, size, selectedPriceMode, props.type],
+  queryKey: ["store-apps", keyword, selectedSort, page, size, selectedPriceMode, props.type, selectedTag],
   queryFn: async () => {
     const { data } = await storeApiClient.get<ListResponse<ApplicationSearchResult>>(
       `/apis/api.store.halo.run/v1alpha1/applications`,
@@ -62,6 +79,7 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
           size: size.value,
           priceMode: selectedPriceMode.value,
           type: props.type,
+          tags: selectedTag.value || undefined,
         },
       }
     );
@@ -147,6 +165,19 @@ watch([selectedPriceMode, selectedSort, keyword], () => {
                   value: 'ONE_TIME',
                   label: '付费',
                 },
+              ]"
+            />
+            <FilterDropdown
+              v-model="selectedTag"
+              label="标签"
+              :items="[
+                {
+                  label: '全部',
+                },
+                ...(tags?.map((tag) => ({
+                  value: tag.metadata.name,
+                  label: tag.spec.displayName,
+                })) || []),
               ]"
             />
             <FilterDropdown
