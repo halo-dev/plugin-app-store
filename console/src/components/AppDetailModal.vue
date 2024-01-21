@@ -18,51 +18,35 @@ import TablerDownload from "~icons/tabler/download";
 
 const props = withDefaults(
   defineProps<{
-    visible: boolean;
     tab?: string;
-    app?: ApplicationSearchResult;
+    app: ApplicationSearchResult;
   }>(),
   {
-    visible: false,
     tab: "readme",
-    app: undefined,
   }
 );
 
 const emit = defineEmits<{
-  (event: "update:visible", visible: boolean): void;
   (event: "close"): void;
 }>();
 
-const onVisibleChange = (visible: boolean) => {
-  emit("update:visible", visible);
+const { app } = toRefs(props);
 
-  if (!visible) {
-    setTimeout(() => {
-      activeId.value = "readme";
-      emit("close");
-    }, 200);
-  }
-};
-
-const { app, visible } = toRefs(props);
+const modal = ref();
 
 const {
   data: appDetail,
   isLoading,
   isFetching,
 } = useQuery<ApplicationDetail>({
-  queryKey: ["store-app", app, visible],
+  queryKey: ["store-app", app],
   queryFn: async () => {
-    if (!visible.value || !app.value) {
-      return;
-    }
     const { data } = await storeApiClient.get(
       `/apis/api.store.halo.run/v1alpha1/applications/${app.value?.application.metadata.name}`
     );
     return data;
   },
-  enabled: computed(() => visible.value && !!app.value),
+  enabled: computed(() => !!app.value),
 });
 
 const title = computed(() => {
@@ -77,9 +61,10 @@ const activeId = ref(props.tab);
 watch(
   () => appDetail.value,
   (value) => {
-    if (!(props.visible && value)) {
+    if (!value) {
       return;
     }
+
     const {
       screen: { width, height },
       navigator: { language },
@@ -96,20 +81,23 @@ watch(
         referrer: document.referrer,
       },
     });
+  },
+  {
+    immediate: true,
   }
 );
 </script>
 
 <template>
   <VModal
+    ref="modal"
     :title="title"
-    :visible="visible"
     :width="1200"
     :layer-closable="true"
     height="calc(100vh - 20px)"
     :mount-to-body="true"
     :body-class="['!as-p-0']"
-    @update:visible="onVisibleChange"
+    @close="emit('close')"
   >
     <template #actions>
       <slot name="actions" />
@@ -188,7 +176,7 @@ watch(
       </div>
     </div>
     <template #footer>
-      <VButton @click="onVisibleChange(false)">关闭</VButton>
+      <VButton @click="modal.close()">关闭</VButton>
     </template>
   </VModal>
 </template>
