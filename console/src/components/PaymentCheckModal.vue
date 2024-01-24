@@ -3,23 +3,22 @@ import type { ApplicationDetail, ApplicationSearchResult } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
 import { Dialog, VButton, VLoading, VModal } from "@halo-dev/components";
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import { ref } from "vue";
 
 const queryClient = useQueryClient();
 
 const props = withDefaults(
   defineProps<{
-    app?: ApplicationSearchResult;
+    app: ApplicationSearchResult;
   }>(),
-  {
-    app: undefined,
-  }
+  {}
 );
-
-const visible = defineModel({ type: Boolean, default: false });
 
 const emit = defineEmits<{
   (event: "close"): void;
 }>();
+
+const modal = ref();
 
 useQuery<ApplicationDetail>({
   queryKey: ["app-payment-check"],
@@ -31,7 +30,7 @@ useQuery<ApplicationDetail>({
   },
   onSuccess(data) {
     if (data?.bought) {
-      visible.value = false;
+      modal.value.close();
       Dialog.success({
         title: "支付成功",
         description: "感谢购买，现在已经可以安装此应用了",
@@ -51,14 +50,14 @@ useQuery<ApplicationDetail>({
 </script>
 
 <template>
-  <VModal v-model:visible="visible" :width="400" title="提示" @close="emit('close')">
+  <VModal ref="modal" :width="400" title="提示" @close="emit('close')">
     <div class="gap-2 p-2 as-flex as-flex-col as-items-center as-justify-center">
       <VLoading />
       <div class="text-xs text-gray-600">正在检测支付状态，请稍后...</div>
     </div>
 
     <template #footer>
-      <VButton @click="emit('close')">关闭</VButton>
+      <VButton @click="modal.close()">关闭</VButton>
     </template>
   </VModal>
 </template>

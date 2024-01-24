@@ -42,8 +42,7 @@ const {
 } = useAppDownload(app);
 
 const { matchedPlugin, matchedTheme, appType, hasInstalled: appHasInstalled } = useAppCompare(app);
-const { paymentCheckModal, paymentCheckModalVisible, onPaymentCheckModalClose, handleOpenCreateOrderPage } =
-  usePaymentCheckModal(app);
+const { paymentCheckModalVisible, handleOpenCreateOrderPage } = usePaymentCheckModal(app);
 
 const hasInstalled = computed(() => {
   if (appType.value === "PLUGIN") {
@@ -256,10 +255,5 @@ const { isLoading: installing, mutate: handleInstall } = useMutation({
       </div>
     </div>
   </div>
-  <PaymentCheckModal
-    v-if="paymentCheckModal"
-    v-model="paymentCheckModalVisible"
-    :app="app"
-    @close="onPaymentCheckModalClose"
-  />
+  <PaymentCheckModal v-if="paymentCheckModalVisible && app" :app="app" @close="paymentCheckModalVisible = false" />
 </template>

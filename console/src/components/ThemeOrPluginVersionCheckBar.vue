@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Plugin, Theme } from "@halo-dev/api-client";
 import AppDetailModal from "./AppDetailModal.vue";
-import { nextTick, ref, toRefs } from "vue";
+import { ref, toRefs } from "vue";
 import { usePluginVersion } from "@/composables/use-plugin-version";
 import { useAppDownload } from "@/composables/use-app-download";
 import RiArrowUpCircleLine from "~icons/ri/arrow-up-circle-line";
@@ -41,22 +41,7 @@ const { hasUpdate, matchedApp } = useVersion();
 const { isSatisfies } = useAppCompare(matchedApp);
 const { upgrading, handleUpgrade } = useAppDownload(matchedApp);
 
-const detailModal = ref(false);
 const detailModalVisible = ref(false);
-
-function handleOpenDetailModal() {
-  detailModal.value = true;
-  nextTick(() => {
-    detailModalVisible.value = true;
-  });
-}
-
-function onDetailModalClose() {
-  detailModalVisible.value = false;
-  setTimeout(() => {
-    detailModal.value = false;
-  }, 200);
-}
 </script>
 
 <template>
@@ -77,7 +62,7 @@ function onDetailModalClose() {
       <div v-if="isSatisfies" class="as-truncate as-text-xs as-text-gray-500">
         有新版本，<span
           class="as-cursor-pointer as-text-gray-900 hover:as-text-gray-600"
-          @click="handleOpenDetailModal"
+          @click="detailModalVisible = true"
         >
           查看详情
         </span>
@@ -87,18 +72,20 @@ function onDetailModalClose() {
         </span>
       </div>
       <div v-else class="as-truncate as-text-xs as-text-gray-500">
-        有新版本，<span class="as-cursor-pointer as-text-gray-900 hover:as-text-gray-600" @click="handleOpenDetailModal"
-          >版本不兼容
+        有新版本，<span
+          class="as-cursor-pointer as-text-gray-900 hover:as-text-gray-600"
+          @click="detailModalVisible = true"
+        >
+          版本不兼容
         </span>
       </div>
     </div>
   </template>
 
   <AppDetailModal
-    v-if="detailModal"
-    v-model:visible="detailModalVisible"
+    v-if="detailModalVisible && matchedApp"
     :app="matchedApp"
     tab="releases"
-    @close="onDetailModalClose"
+    @close="detailModalVisible = false"
   />
 </template>

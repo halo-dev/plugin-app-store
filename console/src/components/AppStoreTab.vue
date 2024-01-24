@@ -92,11 +92,9 @@ const { data, isFetching, isLoading, refetch } = useQuery<ListResponse<Applicati
 });
 
 // detail modal
-const detailModal = ref(false);
 const selectedApp = ref<ApplicationSearchResult>();
 function handleOpenDetailModal(app: ApplicationSearchResult) {
   selectedApp.value = app;
-  detailModal.value = true;
 }
 
 const handleSelectPrevious = async () => {
@@ -257,7 +255,7 @@ watch([selectedPriceMode, selectedSort, keyword], () => {
       :size-options="[10, 20, 30, 50, 100]"
     />
   </div>
-  <AppDetailModal v-model:visible="detailModal" :app="selectedApp">
+  <AppDetailModal v-if="selectedApp" :app="selectedApp" @close="selectedApp = undefined">
     <template #actions>
       <span @click="handleSelectPrevious">
         <IconArrowLeft />

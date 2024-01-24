@@ -31,8 +31,7 @@ const { app } = toRefs(props);
 
 const { installing, handleInstall } = useAppDownload(app);
 const { isSatisfies, hasInstalled } = useAppCompare(app);
-const { paymentCheckModal, paymentCheckModalVisible, onPaymentCheckModalClose, handleOpenCreateOrderPage } =
-  usePaymentCheckModal(app);
+const { paymentCheckModalVisible, handleOpenCreateOrderPage } = usePaymentCheckModal(app);
 
 const actions = computed((): Action[] => {
   return [
@@ -87,10 +86,5 @@ const action = computed(() => {
   >
     {{ action.label }}
   </VButton>
-  <PaymentCheckModal
-    v-if="paymentCheckModal"
-    v-model="paymentCheckModalVisible"
-    :app="app"
-    @close="onPaymentCheckModalClose"
-  />
+  <PaymentCheckModal v-if="paymentCheckModalVisible && app" :app="app" @close="paymentCheckModalVisible = false" />
 </template>

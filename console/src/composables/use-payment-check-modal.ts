@@ -2,23 +2,13 @@ import type { ApplicationSearchResult } from "@/types";
 import storeApiClient from "@/utils/store-api-client";
 import type { DetailedUser } from "@halo-dev/api-client";
 import { Dialog } from "@halo-dev/components";
-import { nextTick, ref, type Ref } from "vue";
+import { ref, type Ref } from "vue";
 import { useRouter } from "vue-router";
 
 export function usePaymentCheckModal(app: Ref<ApplicationSearchResult | undefined>) {
   const router = useRouter();
 
-  // payment check modal
-  // fixme: Refactor VModal to simplify the code
-  const paymentCheckModal = ref(false);
   const paymentCheckModalVisible = ref(false);
-
-  function onPaymentCheckModalClose() {
-    paymentCheckModalVisible.value = false;
-    setTimeout(() => {
-      paymentCheckModal.value = false;
-    }, 200);
-  }
 
   async function handleOpenCreateOrderPage() {
     const { data: user } = await storeApiClient.get<DetailedUser>("/apis/api.console.halo.run/v1alpha1/users/-");
@@ -41,11 +31,8 @@ export function usePaymentCheckModal(app: Ref<ApplicationSearchResult | undefine
     a.click();
     a.remove();
 
-    paymentCheckModal.value = true;
-    nextTick(() => {
-      paymentCheckModalVisible.value = true;
-    });
+    paymentCheckModalVisible.value = true;
   }
 
-  return { paymentCheckModal, paymentCheckModalVisible, handleOpenCreateOrderPage, onPaymentCheckModalClose };
+  return { paymentCheckModalVisible, handleOpenCreateOrderPage };
 }
